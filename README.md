@@ -106,6 +106,7 @@ The `UCP-LLM Generator.html` tool produces a JSON file with the following genera
     }
   ]
 }
+```json
 
 
 Refer to the sectionTypeData object in UCP_LLM Generator.html for the complete list of section IDs, titles, and field jsonKey definitions.
