@@ -80,32 +80,7 @@ This repository currently contains the following core components:
 The `UCP-LLM Generator.html` tool produces a JSON file with the following general structure:
 
 ```json
-{
-  "protocolVersion": "UCP-LLM Generator v1.0.0",
-  "generationDate": "YYYY-MM-DDTHH:mm:ss.sssZ",
-  "sections": [
-    {
-      "id": "personal", // Unique English ID for the section
-      "title": "👤 Personal Data", // English display title
-      "items": [
-        {
-          "preferredName": "User's Value", // English Key
-          "dateOfBirth": "User's Value",
-          // ... other English keys and their values
-        }
-      ]
-    },
-    // ... other sections
-    {
-      "id": "projects",
-      "title": "📌 Projects & Objectives",
-      "items": [ // Can have multiple items
-        { "projectOrObjectiveTitle": "Project Alpha", /* ... */ },
-        { "projectOrObjectiveTitle": "Objective Beta", /* ... */ }
-      ]
-    }
-  ]
-}
+
 ```json
 
 
