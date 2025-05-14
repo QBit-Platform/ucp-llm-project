@@ -1,0 +1,244 @@
+{
+  "protocolVersion": "UCP-LLM Generator v1.0.0",
+  "generationDate": "2025-05-14T09:03:18.394Z",
+  "sections": [
+    {
+      "id": "personal",
+      "title": "👤 Personal Data",
+      "items": [
+        {
+          "preferredName": "sameh",
+          "dateOfBirth": "18/10/1978",
+          "nationalityCulturalBackground": "Egyption",
+          "languagesProficiency": "Arabic- English"
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "title": "🏠 Social and Family Status",
+      "items": [
+        {
+          "socialFamilyDetails": "Single"
+        }
+      ]
+    },
+    {
+      "id": "educational_professional",
+      "title": "🎓 Educational & Professional Background",
+      "items": [
+        {
+          "educationalBackground": "computer science ",
+          "professionalExperience": "programmer , Stock trader ,equity broker ,chart analyzer "
+        }
+      ]
+    },
+    {
+      "id": "thinking_reference",
+      "title": "🧠 Core Thinking Reference",
+      "items": [
+        {
+          "coreThinkingReferenceDescription": "Strict Rationalism"
+        }
+      ]
+    },
+    {
+      "id": "cognitive_passion",
+      "title": "💡 Cognitive Passion & Research Patterns",
+      "items": [
+        {
+          "cognitivePassionName": "Numerology, History of Philosophy"
+        }
+      ]
+    },
+    {
+      "id": "ethical_values",
+      "title": "⚖️ Guiding Ethical Values",
+      "items": [
+        {
+          "ethicalValueName": "Honesty, Justice, Empathy"
+        }
+      ]
+    },
+    {
+      "id": "concepts_perspective",
+      "title": "👁️ Perspective on Core Concepts",
+      "items": [
+        {
+          "coreConceptName": "Extended Beauty"
+        }
+      ]
+    },
+    {
+      "id": "cognitive_tools_methodology",
+      "title": "🛠️ Methodology for Cognitive Tools",
+      "items": [
+        {
+          "cognitiveToolName": "Skepticism, Intuition"
+        }
+      ]
+    },
+    {
+      "id": "inspiring_figures",
+      "title": "🌟 Inspiring Human Models/Figures",
+      "items": [
+        {
+          "inspiringFigureName": "aflato,arsto"
+        }
+      ]
+    },
+    {
+      "id": "intellectual_sins",
+      "title": "🧐 Intellectual Sins/Biases to Avoid",
+      "items": [
+        {
+          "intellectualSinName": "Hasty Generalization"
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "title": "📌 Projects & Objectives",
+      "items": [
+        {
+          "projectOrObjectiveTitle": "noub"
+        },
+        {
+          "projectOrObjectiveTitle": "ucp-llm"
+        }
+      ]
+    },
+    {
+      "id": "pivotal_examples",
+      "title": "🧪 Pivotal Examples",
+      "items": [
+        {
+          "pivotalExampleName": "Story of Joseph, Collatz Conjecture"
+        }
+      ]
+    },
+    {
+      "id": "causal_relations",
+      "title": "🔗 Causal Relations Between Concepts",
+      "items": [
+        {
+          "causeConcept": "null"
+        }
+      ]
+    },
+    {
+      "id": "role",
+      "title": "🎭 LLM Functional Persona",
+      "items": [
+        {
+          "llmPrimaryRole": "Advanced Research Assistant, Constructive Critic",
+          "llmRoleAttributes": "Advanced Research Assistant, Constructive Critic"
+        }
+      ]
+    },
+    {
+      "id": "conceptual_tuning",
+      "title": "📚 Conceptual Tuning (User-Specific Terms)",
+      "items": [
+        {
+          "userSpecificTerm": "White loin",
+          "userTermDefinition": "The AI Llms"
+        }
+      ]
+    },
+    {
+      "id": "interaction_style",
+      "title": "💬 Preferred Interaction Style",
+      "items": [
+        {
+          "preferredResponseStyle": "Analytical, Concise, Detailed with examples",
+          "stylesToAvoid": "Oversimplification, Unjustified emotional responses"
+        }
+      ]
+    },
+    {
+      "id": "intervention_level",
+      "title": "⚙️ Model Intervention Level",
+      "items": [
+        {
+          "chosenInterventionLevel": "high"
+        }
+      ]
+    },
+    {
+      "id": "alignment_level",
+      "title": "🧭 Desired Alignment Level",
+      "items": [
+        {
+          "desiredAlignmentLevel": "5"
+        }
+      ]
+    },
+    {
+      "id": "critique_mechanism",
+      "title": "🗣️ Mechanism for Requesting/Receiving Critique",
+      "items": [
+        {
+          "critiquePreferences": "any time you feel me make mistake or ask an unlogic questions "
+        }
+      ]
+    },
+    {
+      "id": "constraints_warnings",
+      "title": "🚫 Prohibitions and Warnings for LLM",
+      "items": [
+        {
+          "constraintItem": "Do not provide medical advice"
+        }
+      ]
+    },
+    {
+      "id": "memory_management_directives",
+      "title": "💾 Memory Management Directives",
+      "items": [
+        {
+          "contextMaintenanceDirective": "read this protocol",
+          "protocolRecallMechanism": "read this protocol"
+        }
+      ]
+    },
+    {
+      "id": "cognitive_preferences",
+      "title": "🤔 Cognitive/Behavioral Preferences",
+      "items": [
+        {
+          "cognitiveBehavioralPreference": "Prefer big picture then details"
+        }
+      ]
+    },
+    {
+      "id": "mental_state",
+      "title": "🧠 Mental State (Optional & Updatable)",
+      "items": [
+        {
+          "selectedMentalState": "good",
+          "mentalStateNotes": "Very Good"
+        }
+      ]
+    },
+    {
+      "id": "sports_inclinations",
+      "title": "🏅 Sports Inclinations",
+      "items": [
+        {
+          "chosenSportInclination": "tennis",
+          "sportOtherDetails": "Card game , Chess"
+        }
+      ]
+    },
+    {
+      "id": "additional_notes",
+      "title": "📝 Additional General Notes",
+      "items": [
+        {
+          "additionalGeneralNotes": "don't like football ever never"
+        }
+      ]
+    }
+  ]
+}
