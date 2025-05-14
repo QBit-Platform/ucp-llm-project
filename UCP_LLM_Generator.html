@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UCP-LLM Protocol Generator - v1.0.0</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f8; color: #333; line-height: 1.6; }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-bottom: 15px; }
+        h3 { font-size: 1.2em; border-bottom-width: 1px; margin-top: 20px; }
+        .main-container, .help-section { display: flex; flex-direction: column; gap: 20px; }
+        .section-type-container { border: 1px solid #bdc3c7; border-radius: 8px; padding: 20px; margin-bottom: 25px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.08); position: relative; }
+        .section-type-container h2 { margin-top: 0; font-size: 1.4em; }
+        .entry { border: 1px dashed #d1d5da; padding: 15px; margin-bottom: 15px; border-radius: 5px; background-color: #f8f9fa; }
+        .entry label { display: block; margin-bottom: 4px; font-weight: bold; color: #555e68; }
+        .entry input, .entry textarea, .entry select { margin-bottom: 8px; }
+        button, .add-item-btn, .export-btn { background-color: #3498db; color: white; border: none; padding: 10px 18px; margin-top: 10px; margin-right: 5px; cursor: pointer; border-radius: 5px; font-size: 0.95em; transition: background-color 0.3s ease; }
+        button:hover, .add-item-btn:hover, .export-btn:hover { background-color: #2980b9; }
+        .control-buttons button, .action-buttons button { margin: 5px; }
+        .control-buttons button.hidden { display: none; }
+        textarea, input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; }
+        .protocol-output-section { margin-top: 30px; }
+        .close-section-btn { background-color: #7f8c8d; color: white; padding: 6px 12px; font-size: 0.9em; position: absolute; top: 15px; right: 15px; }
+        .close-section-btn:hover { background-color: #606c6d; }
+        #generateProtocolBtn { background-color: #2ecc71; font-size: 1.2em; padding: 12px 25px; }
+        #generateProtocolBtn:hover { background-color: #27ae60; }
+        .export-btn.txt { background-color: #1abc9c; }
+        .export-btn.txt:hover { background-color: #16a085; }
+        .export-btn.json { background-color: #f1c40f; color: #2c3e50; }
+        .export-btn.json:hover { background-color: #f39c12; }
+        #toggleHelpBtn { background-color: #95a5a6; }
+        #toggleHelpBtn:hover { background-color: #7f8c8d; }
+        .help-section { border: 1px solid #3498db; background-color: #eaf5ff; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .help-section ul { padding-left: 20px; } .help-section li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <!--
+        UCP-LLM Generator HTML Tool
+        Copyright (c) 2024 Sameh Yassin
+        All rights reserved.
+        Version: 1.0.0
+    -->
+    <h1>UCP-LLM Protocol Generator</h1>
+
+    <div class="action-buttons">
+        <button id="toggleHelpBtn" onclick="toggleHelpSection()" title="Show/Hide User Guide and Help.">ℹ️ User Guide & Help</button>
+    </div>
+
+    <div id="helpSection" class="help-section" style="display: none;">
+        <h2>ℹ️ User Guide & Help</h2>
+        <p>Welcome to the UCP-LLM Protocol Generator! This tool helps you build a personal context protocol to enhance your interaction with Large Language Models.</p>
+        <h3>How to Use:</h3>
+        <ol>
+            <li><strong>Add Sections:</strong> Click the top control buttons (e.g., "➕ Personal Data", "➕ Project") to add different types of information to your protocol.</li>
+            <li><strong>Fill Data:</strong> After adding a section, input fields will appear. Fill these with relevant information.</li>
+            <li><strong>Add Multiple Items:</strong> Some sections (like "Projects" or "Ethical Values") allow multiple entries. Use the "➕ Add..." button within the section.</li>
+            <li><strong>Close Sections:</strong> To remove an added section, click "❌ Close This Section" at the top right of the section. You'll be warned before deletion.</li>
+            <li><strong>Generate Protocol:</strong> When done, click "✅ Generate & View Protocol". This will display the compiled protocol in the "Protocol Output" area.</li>
+            <li><strong>Export Protocol:</strong> You can then export it as a text file (.txt) or a JSON file using the export buttons. JSON is useful for programmatic use.</li>
+            <li><strong>Auto-Save:</strong> Your progress is auto-saved in your browser. If you close and return, you'll be asked if you want to restore previous work.</li>
+        </ol>
+        <h3>Purpose of the Protocol:</h3>
+        <p>UCP-LLM aims to provide LLMs with a deep understanding of your intellectual context, values, goals, and methodologies. This helps to:</p>
+        <ul>
+            <li>Reduce misunderstandings and superficial responses.</li>
+            <li>Make model interactions more personalized and relevant.</li>
+            <li>Save time and effort in re-explaining yourself.</li>
+            <li>Achieve "intellectual alignment" where the model thinks and acts consistently with your cognitive framework.</li>
+        </ul>
+        <button onclick="toggleHelpSection()">Close Help</button>
+    </div>
+
+    <div id="controlButtonsContainer" class="control-buttons"></div>
+    <div id="mainContainer" class="main-container"></div>
+    <br><br>
+    <div class="action-buttons">
+        <button id="generateProtocolBtn" onclick="generateProtocol()" title="Click to compile all entered data and generate the protocol text.">✅ Generate & View Protocol</button>
+        <button id="exportTxtBtn" onclick="exportProtocolAsTxt()" class="export-btn txt" title="Export the displayed protocol as a text file (.txt)">📄 Export as TXT</button>
+        <button id="exportJsonBtn" onclick="exportProtocolAsJson()" class="export-btn json" title="Export the protocol as a structured JSON file.">💾 Export as JSON</button>
+        <button id="clearAllDataBtn" onclick="clearAllDataWithConfirmation()" class="export-btn" style="background-color: #e74c3c;" title="Clear all sections and entered data to start fresh.">🧹 Clear All & Restart</button>
+    </div>
+
+    <div class="section-type-container protocol-output-section">
+        <h2>📜 Protocol Output (Preview)</h2>
+        <textarea id="protocolOutput" rows="30" readonly style="background-color: #ecf0f1; color: #34495e;"></textarea>
+    </div>
+
+<script>
+    // UCP-LLM Generator HTML Tool - JavaScript Logic
+    // Copyright (c) 2024 Sameh Yassin. All rights reserved. Version: 1.0.0
+
+    const UCP_LLM_STORAGE_KEY = 'ucpLlmGeneratorData_v1_0_0_EN_Complete';
+    let autoSaveTimeout;
+
+    const sectionTypeData = {
+        personal: {
+            title: '👤 Personal Data', controlButtonText: '➕ Personal Data', maxItems: 1,
+            fields: [
+                { label: 'Preferred Name for Interaction', type: 'text', name: 'preferredName', jsonKey: 'preferredName' },
+                { label: 'Date of Birth (Optional)', type: 'text', name: 'dob', jsonKey: 'dateOfBirth' },
+                { label: 'Nationality or Cultural Background (Optional)', type: 'text', name: 'nationality', jsonKey: 'nationalityCulturalBackground' },
+                { label: 'Languages and Proficiency Levels (e.g., Arabic (Native), English (Fluent))', type: 'textarea', name: 'languages', jsonKey: 'languagesProficiency' },
+            ]
+        },
+        social: {
+            title: '🏠 Social and Family Status', controlButtonText: '➕ Social Status', maxItems: 1,
+            fields: [ { label: 'Details (e.g., Single, Married with children, living with parents)', type: 'textarea', name: 'social_details', jsonKey: 'socialFamilyDetails' } ]
+        },
+        educational_professional: {
+            title: '🎓 Educational & Professional Background', controlButtonText: '➕ Edu/Prof Background', maxItems: 1,
+            fields: [
+                { label: 'Educational Background (Key fields, degrees, graduation year)', type: 'textarea', name: 'education_background', jsonKey: 'educationalBackground' },
+                { label: 'Key Professional or Practical Experiences (Roles, industries, skills)', type: 'textarea', name: 'professional_experience', jsonKey: 'professionalExperience' }
+            ]
+        },
+        thinking_reference: {
+            title: '🧠 Core Thinking Reference', controlButtonText: '➕ Thinking Reference', maxItems: 1,
+            fields: [
+                { label: 'Describe your core thinking reference (e.g., Strict Rationalism, Extended Platonism)', type: 'textarea', name: 'thinking_reference_desc', jsonKey: 'coreThinkingReferenceDescription' },
+                { label: 'How do you apply it, and what is its importance to you?', type: 'textarea', name: 'thinking_reference_application', jsonKey: 'thinkingReferenceApplication' }
+            ]
+        },
+        cognitive_passion: { // Renamed from your Arabic version's 'الشغف المعرفي'
+            title: '💡 Cognitive Passion & Research Patterns', controlButtonText: '➕ Cognitive Passion',
+            fields: [
+                { label: 'Name of Cognitive Passion (e.g., Numerology, History of Philosophy)', type: 'text', name: 'passion_name', jsonKey: 'cognitivePassionName' },
+                { label: 'Typical research or exploration methodology for this passion', type: 'textarea', name: 'passion_methodology', jsonKey: 'passionResearchMethodology' }
+            ]
+        },
+        ethical_values: {
+            title: '⚖️ Guiding Ethical Values', controlButtonText: '➕ Ethical Values',
+            fields: [
+                { label: 'Ethical Value Name (e.g., Honesty, Justice, Empathy)', type: 'text', name: 'value_name', jsonKey: 'ethicalValueName' },
+                { label: 'Explanation, manifestations, importance, and relative priority', type: 'textarea', name: 'value_description', jsonKey: 'ethicalValueExplanation' }
+            ]
+        },
+        concepts_perspective: { // Renamed from 'المنظور تجاه مفاهيم جوهرية'
+            title: '👁️ Perspective on Core Concepts', controlButtonText: '➕ Core Concepts Perspective',
+            fields: [
+                { label: 'Core Concept Name (e.g., Uglieness, Chaos, Extended Beauty, Ambiguity)', type: 'text', name: 'core_concept_name', jsonKey: 'coreConceptName' },
+                { label: 'Your perspective and interpretation of this concept', type: 'textarea', name: 'core_concept_perspective', jsonKey: 'coreConceptPerspective' }
+            ]
+        },
+        cognitive_tools_methodology: {
+            title: '🛠️ Methodology for Cognitive Tools', controlButtonText: '➕ Cognitive Tools',
+            fields: [
+                { label: 'Cognitive Tool Name (e.g., Skepticism, Intuition)', type: 'text', name: 'cognitive_tool_name', jsonKey: 'cognitiveToolName' },
+                { label: 'How do you view it? When is it constructive? Reliance level?', type: 'textarea', name: 'cognitive_tool_usage', jsonKey: 'cognitiveToolMethodology' }
+            ]
+        },
+        inspiring_figures: {
+            title: '🌟 Inspiring Human Models/Figures', controlButtonText: '➕ Inspiring Figures',
+            fields: [
+                { label: 'Name of the Inspiring Figure', type: 'text', name: 'figure_name', jsonKey: 'inspiringFigureName' },
+                { label: 'Value derived from them and their impact on you', type: 'textarea', name: 'figure_value_impact', jsonKey: 'derivedValueAndImpact' }
+            ]
+        },
+        intellectual_sins: {
+            title: '🧐 Intellectual Sins/Biases to Avoid', controlButtonText: '➕ Intellectual Sins',
+            fields: [
+                { label: 'Intellectual Sin or Bias (e.g., Dogmatism, Hasty Generalization)', type: 'text', name: 'intellectual_sin_name', jsonKey: 'intellectualSinName' },
+                { label: 'Why do you consider it harmful or a bias?', type: 'textarea', name: 'intellectual_sin_reason', jsonKey: 'reasonConsideredHarmful' }
+            ]
+        },
+        projects: {
+            title: '📌 Projects & Objectives', controlButtonText: '➕ Project/Objective', // Combined for simplicity
+            fields: [
+                { label: 'Project or Objective Name/Title', type: 'text', name: 'project_name', jsonKey: 'projectOrObjectiveTitle' },
+                { label: 'Detailed Primary Goals/Description', type: 'textarea', name: 'project_goals', jsonKey: 'projectDetailedGoals' },
+                { label: 'Associated Concepts/Tools (Optional)', type: 'textarea', name: 'project_concepts_tools', jsonKey: 'projectAssociatedConcepts' },
+                { label: 'Specific LLM Role for Contribution', type: 'textarea', name: 'project_llm_role', jsonKey: 'projectLLMRole' }
+            ]
+        },
+        // Merged 'goals' into 'projects' as 'objectives' for a more unified section. If you want 'goals' separate, create a new entry.
+        pivotal_examples: {
+            title: '🧪 Pivotal Examples', controlButtonText: '➕ Pivotal Example',
+            fields: [
+                { label: 'Name or Brief Description of the Example (e.g., Story of Joseph, Collatz Conjecture)', type: 'text', name: 'example_name', jsonKey: 'pivotalExampleName' },
+                { label: 'What does this example represent to you? Key ideas it illustrates?', type: 'textarea', name: 'example_significance', jsonKey: 'pivotalExampleSignificance' }
+            ]
+        },
+        causal_relations: {
+            title: '🔗 Causal Relations Between Concepts', controlButtonText: '➕ Causal Relations',
+            fields: [
+                { label: 'First Concept (Cause or Influencer)', type: 'text', name: 'cause_concept', jsonKey: 'causeConcept' },
+                { label: 'Second Concept (Effect or Affected)', type: 'text', name: 'effect_concept', jsonKey: 'effectConcept' },
+                { label: 'Explain the nature of the causal relationship you see', type: 'textarea', name: 'relation_description', jsonKey: 'causalRelationDescription' }
+            ]
+        },
+        role: { // LLM Role Definition
+            title: '🎭 LLM Functional Persona', controlButtonText: '➕ LLM Persona', maxItems: 1,
+            fields: [
+                { label: 'Primary Role Required from LLM (e.g., Advanced Research Assistant, Constructive Critic)', type: 'text', name: 'llm_role_primary', jsonKey: 'llmPrimaryRole' },
+                { label: 'Specific attributes or behaviors associated with this role', type: 'textarea', name: 'llm_role_attributes', jsonKey: 'llmRoleAttributes' }
+            ]
+        },
+        conceptual_tuning: { // Same as before
+            title: '📚 Conceptual Tuning (User-Specific Terms)', controlButtonText: '➕ Conceptual Tuning',
+            fields: [
+                { label: 'Your Specific Concept or Term', type: 'text', name: 'user_concept_term', jsonKey: 'userSpecificTerm' },
+                { label: 'Your definition, explanation, and usage examples', type: 'textarea', name: 'user_concept_definition', jsonKey: 'userTermDefinition' }
+            ]
+        },
+        interaction_style: {
+            title: '💬 Preferred Interaction Style', controlButtonText: '➕ Interaction Style', maxItems: 1,
+            fields: [
+                { label: 'Describe preferred LLM response style (e.g., Analytical, Concise, Detailed with examples)', type: 'textarea', name: 'preferred_style', jsonKey: 'preferredResponseStyle' },
+                { label: 'Styles for LLM to avoid (e.g., Oversimplification, Unjustified emotional responses)', type: 'textarea', name: 'avoid_style', jsonKey: 'stylesToAvoid' }
+            ]
+        },
+        intervention_level: { // Same as before
+            title: '⚙️ Model Intervention Level', controlButtonText: '➕ Intervention Level', maxItems: 1,
+            fields: [
+                { type: 'select', name: 'intervention_select', label: 'Chosen Intervention Level', jsonKey: 'chosenInterventionLevel',
+                  options: [ {value: '', text: '-- Select Level --'}, {value: 'high', text: 'High (Proactively ask, suggest, link)'}, {value: 'medium', text: 'Medium (Intervene when needed or upon request)'}, {value: 'low', text: 'Low (Await explicit and direct guidance)'} ] },
+                { label: 'Additional clarifications on initiative level (Optional)', type: 'textarea', name: 'intervention_details', jsonKey: 'interventionClarifications' }
+            ]
+        },
+        alignment_level: {
+            title: '🧭 Desired Alignment Level', controlButtonText: '➕ Alignment Level', maxItems: 1,
+            fields: [
+                 { type: 'select', name: 'alignment_select', label: 'Desired Intellectual Alignment Level (1-5)', jsonKey: 'desiredAlignmentLevel',
+                   options: [ {value: '', text: '-- Select Level --'}, {value: '5', text: '5 (Very High - Aim for high consistency/emulation)'}, {value: '4', text: '4 (High)'}, {value: '3', text: '3 (Medium)'}, {value: '2', text: '2 (Low)'}, {value: '1', text: '1 (Basic - Understand instructions only)'} ] },
+                { label: 'Notes on what this level means to you (Optional)', type: 'textarea', name: 'alignment_notes', jsonKey: 'alignmentLevelNotes' }
+            ]
+        },
+        critique_mechanism: {
+            title: '🗣️ Mechanism for Requesting/Receiving Critique', controlButtonText: '➕ Critique Mechanism', maxItems: 1,
+            fields: [
+                { label: 'Preferences for receiving constructive critique? When and how?', type: 'textarea', name: 'critique_preference', jsonKey: 'critiquePreferences' },
+                { label: 'Conditions for providing critique (e.g., Respectful, analysis-based)', type: 'textarea', name: 'critique_conditions', jsonKey: 'critiqueConditions' }
+            ]
+        },
+        constraints_warnings: {
+            title: '🚫 Prohibitions and Warnings for LLM', controlButtonText: '➕ Prohibitions/Warnings',
+            fields: [
+                { label: 'Prohibited item or important warning (e.g., Do not provide medical advice)', type: 'text', name: 'constraint_item', jsonKey: 'constraintItem' },
+                { label: 'Clarification or reason for this (Optional)', type: 'textarea', name: 'constraint_reason', jsonKey: 'constraintReason' }
+            ]
+        },
+        memory_management_directives: {
+            title: '💾 Memory Management Directives', controlButtonText: '➕ Memory Directives', maxItems: 1,
+            fields: [
+                { label: 'Suggestion or directive to help maintain interaction context effectively', type: 'textarea', name: 'memory_directive', jsonKey: 'contextMaintenanceDirective' },
+                { label: 'How can the LLM help you recall important points from the protocol?', type: 'textarea', name: 'memory_protocol_recall', jsonKey: 'protocolRecallMechanism' }
+            ]
+        },
+        cognitive_preferences: { // This was a generic one, making it more specific based on the example
+            title: '🤔 Cognitive/Behavioral Preferences', controlButtonText: '➕ Cognitive Preference',
+            fields: [ { label: 'Describe an important cognitive or behavioral preference (e.g., Prefer big picture then details)', type: 'textarea', name: 'preference_description', jsonKey: 'cognitiveBehavioralPreference' } ]
+        },
+        mental_state: { // Same as before
+            title: '🧠 Mental State (Optional & Updatable)', controlButtonText: '➕ Mental State', maxItems: 1,
+            fields: [
+                { type: 'select', name: 'mental_state_select', label: 'Selected Mental State', jsonKey: 'selectedMentalState',
+                  options: [ {value: '', text: '-- Select State --'}, {value: 'good', text: 'Good / Focused'}, {value: 'average', text: 'Average / Slightly distracted'}, {value: 'bad', text: 'Poor / Unfocused'}, {value: 'not_specified', text: 'Not specified'} ] },
+                { label: 'Additional notes on your mental state (Optional)', type: 'textarea', name: 'mental_state_notes', jsonKey: 'mentalStateNotes' }
+            ]
+        },
+        sports_inclinations: { // Same as before
+            title: '🏅 Sports Inclinations', controlButtonText: '➕ Sports Inclinations', maxItems: 1,
+            fields: [
+                { type: 'select', name: 'sport_select', label: 'Chosen Sports Inclination', jsonKey: 'chosenSportInclination',
+                  options: [ {value: '', text: '-- Select Sport --'}, {value: 'none', text: 'No specific sports inclination'}, {value: 'equestrian', text: 'Equestrian'}, {value: 'football', text: 'Football (Soccer)'}, {value: 'basketball', text: 'Basketball'}, {value: 'tennis', text: 'Tennis'}, {value: 'esports_pc', text: 'Competitive PC Gaming'}, {value: 'mobile_games', text: 'Mobile Games'}, {value: 'console_games', text: 'Console Games'}, {value: 'other', text: 'Other (Please specify)'} ] },
+                { label: 'If "Other" or additional details', type: 'text', name: 'sport_other_details', jsonKey: 'sportOtherDetails' }
+            ]
+        },
+        additional_notes: {
+            title: '📝 Additional General Notes', controlButtonText: '➕ Additional Notes',
+            fields: [ { label: 'Any other information or general directives not covered elsewhere', type: 'textarea', name: 'general_notes', jsonKey: 'additionalGeneralNotes' } ]
+        }
+    };
+
+    // JavaScript functions (initializeControlButtons, createSectionTypeContainer, addItemToSection,
+    // scheduleAutoSave, getStructuredData, generateProtocol, exportProtocolAsTxt, exportProtocolAsJson,
+    // saveDataToLocalStorage, loadDataFromLocalStorage, reconstructUIFromData,
+    // toggleHelpSection, clearAllDataWithConfirmation) remain largely the same as in your v2.6,
+    // with the key change being in getStructuredData to use `fieldDef.jsonKey` for JSON export
+    // and `fieldDef.label` for the text protocol display.
+
+    // --- Start of JS Functions (Ensure they are identical to your v2.6, with the getStructuredData modification) ---
+
+    function initializeControlButtons() {
+        const controlButtonsContainer = document.getElementById('controlButtonsContainer');
+        controlButtonsContainer.innerHTML = '';
+        Object.keys(sectionTypeData).forEach(typeKey => {
+            const typeInfo = sectionTypeData[typeKey];
+            const button = document.createElement('button');
+            button.textContent = typeInfo.controlButtonText || `➕ ${typeInfo.title}`;
+            button.id = `control-btn-${typeKey}`;
+            button.title = typeInfo.tooltip || `Add section: ${typeInfo.title}`;
+            button.onclick = () => createSectionTypeContainer(typeKey);
+            controlButtonsContainer.appendChild(button);
+        });
+    }
+
+    function createSectionTypeContainer(typeKey) {
+        const mainContainer = document.getElementById("mainContainer");
+        let container = document.getElementById(`container-${typeKey}`);
+        const controlButton = document.getElementById(`control-btn-${typeKey}`);
+
+        if (!container) {
+            container = document.createElement("div");
+            container.className = "section-type-container";
+            container.id = `container-${typeKey}`;
+            const typeInfo = sectionTypeData[typeKey];
+            const header = document.createElement("h2");
+            header.textContent = typeInfo.title;
+            container.appendChild(header);
+            const closeSectionButton = document.createElement("button");
+            closeSectionButton.textContent = "❌ Close This Section";
+            closeSectionButton.className = "close-section-btn";
+            closeSectionButton.onclick = () => {
+                if (confirm("Are you sure you want to close this section? All entered data for this section will be lost.")) {
+                    mainContainer.removeChild(container);
+                    if (controlButton) controlButton.classList.remove('hidden');
+                    saveDataToLocalStorage();
+                }
+            };
+            container.appendChild(closeSectionButton);
+            const itemsContainer = document.createElement("div");
+            itemsContainer.id = `items-${typeKey}`;
+            container.appendChild(itemsContainer);
+            if (!typeInfo.maxItems || typeInfo.maxItems > 1) {
+                const addButton = document.createElement("button");
+                addButton.textContent = `➕ Add ${typeInfo.title.split(' ')[0] || 'New Item'}`; // Improved add button text
+                addButton.className = "add-item-btn";
+                addButton.onclick = () => addItemToSection(typeKey);
+                container.appendChild(addButton);
+            }
+            mainContainer.appendChild(container);
+            if (controlButton) controlButton.classList.add('hidden');
+            // container.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Can be annoying, optional
+        }
+        if (!sectionTypeData[typeKey].maxItems || document.getElementById(`items-${typeKey}`).children.length < sectionTypeData[typeKey].maxItems) {
+            addItemToSection(typeKey);
+        }
+        saveDataToLocalStorage();
+    }
+
+    function addItemToSection(typeKey) {
+        const itemsContainer = document.getElementById(`items-${typeKey}`);
+        const typeInfo = sectionTypeData[typeKey];
+        if (typeInfo.maxItems && itemsContainer.children.length >= typeInfo.maxItems) {
+            alert(`You cannot add more than ${typeInfo.maxItems} item(s) to this section.`);
+            return;
+        }
+        const entryDiv = document.createElement("div");
+        entryDiv.className = "entry";
+        entryDiv.setAttribute('data-type', typeKey);
+        typeInfo.fields.forEach(field => {
+            let fieldElement;
+            const label = document.createElement('label');
+            label.textContent = field.label + ":";
+            entryDiv.appendChild(label);
+            if (field.type === 'textarea') {
+                fieldElement = document.createElement("textarea");
+            } else if (field.type === 'select') {
+                fieldElement = document.createElement("select");
+                if (field.options && field.options.every(opt => opt.value !== "")) { // Check if a placeholder is needed
+                    const defaultOption = document.createElement("option");
+                    defaultOption.value = ""; defaultOption.textContent = field.placeholder || "-- Select --"; // Use placeholder for select if available
+                    fieldElement.appendChild(defaultOption);
+                }
+                (field.options || []).forEach(opt => {
+                    const option = document.createElement("option");
+                    option.value = opt.value; option.textContent = opt.text;
+                    fieldElement.appendChild(option);
+                });
+            } else { // input type
+                fieldElement = document.createElement("input");
+                fieldElement.type = field.type || "text";
+            }
+            fieldElement.name = field.name;
+            fieldElement.placeholder = field.placeholder || field.label;
+            fieldElement.id = `${field.name}-${itemsContainer.children.length}-${Math.random().toString(36).substr(2, 5)}`;
+            label.htmlFor = fieldElement.id;
+            fieldElement.addEventListener('input', scheduleAutoSave);
+            fieldElement.addEventListener('change', scheduleAutoSave);
+            entryDiv.appendChild(fieldElement);
+        });
+        itemsContainer.appendChild(entryDiv);
+        saveDataToLocalStorage();
+    }
+
+    function scheduleAutoSave() { clearTimeout(autoSaveTimeout); autoSaveTimeout = setTimeout(saveDataToLocalStorage, 1500); }
+
+    function getStructuredData(forStorage = false) {
+        const protocolData = {
+            protocolVersion: "UCP-LLM Generator v1.0.0",
+            generationDate: new Date().toISOString(),
+            sections: []
+        };
+        Object.keys(sectionTypeData).forEach(typeKey => {
+            const container = document.getElementById(`container-${typeKey}`);
+            if (container) {
+                const itemsContainer = document.getElementById(`items-${typeKey}`);
+                if (itemsContainer && itemsContainer.children.length > 0) {
+                    const typeInfo = sectionTypeData[typeKey];
+                    const section = {
+                        id: typeKey,
+                        title: typeInfo.title, // Storing the English display title for context in JSON
+                        items: []
+                    };
+                    let sectionHasContent = false;
+                    Array.from(itemsContainer.children).forEach(entry => {
+                        const itemData = {};
+                        let itemHasContent = false;
+                        entry.querySelectorAll("input, textarea, select").forEach(inp => {
+                            const fieldDef = typeInfo.fields.find(f => f.name === inp.name);
+                            if (fieldDef && inp.value && inp.value.trim() !== "" && (inp.tagName !== 'SELECT' || inp.value !== "")) {
+                                let valueToStore = inp.value;
+                                if (inp.tagName === 'SELECT' && !forStorage && inp.options[inp.selectedIndex]) {
+                                     valueToStore = (inp.options[inp.selectedIndex].text !== (fieldDef.placeholder || "-- Select --")) ? inp.options[inp.selectedIndex].text : "";
+                                     if (!valueToStore) return;
+                                }
+                                itemData[fieldDef.jsonKey || fieldDef.name] = valueToStore; // CRITICAL: Use jsonKey
+                                itemHasContent = true;
+                            }
+                        });
+                        if (itemHasContent) { section.items.push(itemData); sectionHasContent = true; }
+                    });
+                    if (sectionHasContent) { protocolData.sections.push(section); }
+                }
+            }
+        });
+        return protocolData;
+    }
+
+    function generateProtocol() { // For TXT output display
+        const structuredData = getStructuredData(false); // false for display text
+        if (structuredData.sections.length === 0) {
+            document.getElementById("protocolOutput").value = "No sections with content have been added. Please add information to generate the protocol.";
+            return "";
+        }
+        let output = `User Context Protocol (UCP-LLM) - Generated by Generator v1.0.0\n`;
+        output += `Generation Date: ${new Date(structuredData.generationDate).toLocaleString('en-US')}\n\n`;
+        output += `--- Initial Directives for the LLM ---\n`;
+        output += `This protocol aims to provide you, the LLM, with a comprehensive understanding of the user. Deeply assimilate this to facilitate advanced, context-aware, and intellectually aligned interactions. This is a Core Contextual Anchor (CCA) and a living document.\n\n`;
+        structuredData.sections.forEach((section, sectionIndex) => {
+            output += `${sectionIndex + 1}. Section: ${section.title}\n`; // Uses the English title stored in JSON
+            section.items.forEach((item, itemIndex) => {
+                if (section.items.length > 1 && Object.keys(item).length > 0) {
+                    output += `  Item (${itemIndex + 1}):\n`;
+                }
+                // For text output, we want to show the 'label' not the 'jsonKey'
+                const typeInfo = sectionTypeData[section.id]; // Get the definition for this section type
+                Object.keys(item).forEach(jsonKeyForItem => { // jsonKeyForItem is like "preferredName"
+                    const fieldDef = typeInfo.fields.find(f => f.jsonKey === jsonKeyForItem);
+                    const displayLabel = fieldDef ? fieldDef.label : jsonKeyForItem; // Fallback to jsonKey if no label
+                    output += `    - ${displayLabel}: ${item[jsonKeyForItem]}\n`;
+                });
+            });
+            output += "\n";
+        });
+        output += `--- Concluding Note for the Model ---\nUnderstanding is an ongoing process. Aim for maximum intellectual alignment based on this document.\n`;
+        document.getElementById("protocolOutput").value = output.trim();
+        return output.trim();
+    }
+
+    function exportProtocolAsTxt() {
+        const protocolText = generateProtocol();
+        if (!protocolText || protocolText.includes("No sections with content")) {
+            alert("Please generate the protocol or add data first."); return;
+        }
+        const blob = new Blob([protocolText], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'UCP-LLM_Protocol_v1.0.0.txt';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    function exportProtocolAsJson() {
+        const structuredData = getStructuredData(true); // true for storage values (e.g. select values)
+        if (structuredData.sections.length === 0) {
+            alert("No data to export as JSON. Please add some information."); return;
+        }
+        const jsonString = JSON.stringify(structuredData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'UCP-LLM_Protocol_v1.0.0.json';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+    
+    function saveDataToLocalStorage() {
+        const dataToSave = getStructuredData(true); // for storage, use select value
+        try {
+            localStorage.setItem(UCP_LLM_STORAGE_KEY, JSON.stringify(dataToSave));
+        } catch (e) { console.error("Error saving to localStorage:", e); }
+    }
+
+    function loadDataFromLocalStorage() {
+        const savedDataString = localStorage.getItem(UCP_LLM_STORAGE_KEY);
+        if (savedDataString) {
+            try {
+                const savedData = JSON.parse(savedDataString);
+                if (savedData && savedData.sections && Array.isArray(savedData.sections)) {
+                    if (confirm("Saved data found. Would you like to restore it?")) {
+                        reconstructUIFromData(savedData);
+                    }
+                }
+            } catch (e) { console.error("Error parsing localStorage data:", e); localStorage.removeItem(UCP_LLM_STORAGE_KEY); }
+        }
+    }
+
+    function reconstructUIFromData(data) {
+        document.getElementById("mainContainer").innerHTML = '';
+        initializeControlButtons(); 
+        if (data.sections) {
+            data.sections.forEach(section => { // section here is from saved data, with 'title' as English
+                const typeKey = section.id;
+                if (sectionTypeData[typeKey]) {
+                    createSectionTypeContainer(typeKey); 
+                    const itemsContainer = document.getElementById(`items-${typeKey}`);
+                    if (itemsContainer && itemsContainer.firstChild && section.items.length > 0) {
+                        itemsContainer.removeChild(itemsContainer.firstChild);
+                    }
+                    section.items.forEach(itemData => { // itemData has English jsonKeys
+                        addItemToSection(typeKey); 
+                        const lastEntry = itemsContainer.lastChild;
+                        if (lastEntry) {
+                            lastEntry.querySelectorAll("input, textarea, select").forEach(inp => {
+                                const fieldDef = sectionTypeData[typeKey].fields.find(f => f.name === inp.name);
+                                if (fieldDef && itemData[fieldDef.jsonKey]) { // Match using jsonKey
+                                    inp.value = itemData[fieldDef.jsonKey];
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function toggleHelpSection() {
+        const helpSection = document.getElementById('helpSection');
+        if (helpSection.style.display === 'none') {
+            helpSection.style.display = 'block';
+            helpSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            helpSection.style.display = 'none';
+        }
+    }
+    function clearAllDataWithConfirmation() {
+        if (confirm("Are you sure you want to clear all sections and entered data? This action cannot be undone.")) {
+            localStorage.removeItem(UCP_LLM_STORAGE_KEY);
+            document.getElementById("mainContainer").innerHTML = ''; 
+            initializeControlButtons(); 
+            document.getElementById("protocolOutput").value = ''; 
+            alert("All data has been cleared.");
+        }
+    }
+    
+    window.onload = () => { initializeControlButtons(); loadDataFromLocalStorage(); };
+</script>
+</body>
+</html>
