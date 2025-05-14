@@ -107,7 +107,10 @@ The `UCP-LLM Generator.html` tool produces a JSON file with the following genera
 }
 
 
+
+
 Refer to the sectionTypeData object in UCP_LLM Generator.html for the complete list of section IDs, titles, and field jsonKey definitions.
+
 
 🚀 Getting Started
 
@@ -133,6 +136,8 @@ Place ucp_llm.py in your Python project or install it via pip (once available).
 
 Use the UCPProfile class to load and interact with the protocol data in your Python applications.
 
+
+
 🔭 Future Goals & Roadmap
 
 This is the foundational version (v1.0.0). Future development aims to include:
@@ -155,6 +160,7 @@ Enhanced Multilingual Support: Full and dynamic multilingual support for the UI 
 
 Community & Standardisation: Fostering a community and potentially working towards a more standardized UCP-LLM format.
 
+
 🤝 Contributing
 
 Currently, the project is primarily driven by Sameh Yassin. As it matures, guidelines for contributions will be established. For now, feel free to:
@@ -162,6 +168,7 @@ Currently, the project is primarily driven by Sameh Yassin. As it matures, guide
 Open an issue for bug reports or feature suggestions.
 
 Fork the repository and experiment.
+
 
 📜 License
 
