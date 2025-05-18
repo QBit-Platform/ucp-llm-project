@@ -1,25 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr"> <!-- Changed lang to en and dir to ltr -->
 <head>
     <meta charset="UTF-8">
-    <title>UCP-LLM Protocol Generator - v1.0.0</title>
+    <title>UCP-LLM Protocol Generator - Eve Edition (v1.1.0) 🧚</title> <!-- Updated Title -->
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f6f8; color: #333; line-height: 1.6; }
+        /* Styles largely same, but will adjust for LTR as needed */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 0; margin:0; background-color: #f0f4f8; color: #333; line-height: 1.6; overflow-x: hidden; }
         h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-bottom: 15px; }
         h3 { font-size: 1.2em; border-bottom-width: 1px; margin-top: 20px; }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            transition: margin-left 0.3s ease, margin-right 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+        body.eve-fullscreen-mode .main-content { display: none; opacity: 0; }
+
         .main-container, .help-section { display: flex; flex-direction: column; gap: 20px; }
         .section-type-container { border: 1px solid #bdc3c7; border-radius: 8px; padding: 20px; margin-bottom: 25px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.08); position: relative; }
-        .section-type-container h2 { margin-top: 0; font-size: 1.4em; }
-        .entry { border: 1px dashed #d1d5da; padding: 15px; margin-bottom: 15px; border-radius: 5px; background-color: #f8f9fa; }
         .entry label { display: block; margin-bottom: 4px; font-weight: bold; color: #555e68; }
         .entry input, .entry textarea, .entry select { margin-bottom: 8px; }
-        button, .add-item-btn, .export-btn { background-color: #3498db; color: white; border: none; padding: 10px 18px; margin-top: 10px; margin-right: 5px; cursor: pointer; border-radius: 5px; font-size: 0.95em; transition: background-color 0.3s ease; }
-        button:hover, .add-item-btn:hover, .export-btn:hover { background-color: #2980b9; }
+        button, .add-item-btn, .export-btn, .assistant-option-btn { background-color: #3498db; color: white; border: none; padding: 10px 18px; margin-top: 10px; margin-left: 5px; /* Adjusted for LTR */ cursor: pointer; border-radius: 5px; font-size: 0.95em; transition: background-color 0.3s ease; }
+        button:hover, .add-item-btn:hover, .export-btn:hover, .assistant-option-btn:hover { background-color: #2980b9; }
         .control-buttons button, .action-buttons button { margin: 5px; }
         .control-buttons button.hidden { display: none; }
         textarea, input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; }
         .protocol-output-section { margin-top: 30px; }
-        .close-section-btn { background-color: #7f8c8d; color: white; padding: 6px 12px; font-size: 0.9em; position: absolute; top: 15px; right: 15px; }
+        .close-section-btn { background-color: #7f8c8d; color: white; padding: 6px 12px; font-size: 0.9em; position: absolute; top: 15px; }
         .close-section-btn:hover { background-color: #606c6d; }
         #generateProtocolBtn { background-color: #2ecc71; font-size: 1.2em; padding: 12px 25px; }
         #generateProtocolBtn:hover { background-color: #27ae60; }
@@ -27,72 +35,193 @@
         .export-btn.txt:hover { background-color: #16a085; }
         .export-btn.json { background-color: #f1c40f; color: #2c3e50; }
         .export-btn.json:hover { background-color: #f39c12; }
-        #toggleHelpBtn { background-color: #95a5a6; }
-        #toggleHelpBtn:hover { background-color: #7f8c8d; }
+        #toggleHelpBtn, #startAssistantBtn { background-color: #95a5a6; }
+        #toggleHelpBtn:hover, #startAssistantBtn:hover { background-color: #7f8c8d; }
         .help-section { border: 1px solid #3498db; background-color: #eaf5ff; padding: 20px; border-radius: 8px; margin-top: 20px; }
-        .help-section ul { padding-left: 20px; } .help-section li { margin-bottom: 8px; }
+        .help-section ul { padding-left: 20px; /* Adjusted for LTR */ } .help-section li { margin-bottom: 8px; }
+
+        #assistantPanel {
+            width: 380px; min-width: 320px; height: 100vh; position: fixed; top: 0;
+            background-color: #eef2f7; padding: 20px; box-sizing: border-box; overflow-y: hidden;
+            z-index: 1000; box-shadow: 0 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column;
+            transition: left 0.3s ease, right 0.3s ease, width 0.3s ease, height 0.3s ease;
+        }
+        #assistantPanel.hidden { display: none !important; }
+        /* Default to left for LTR, can be toggled */
+        #assistantPanel.eve-on-left:not(.eve-fullscreen) { left: 0; right: auto; border-right: 2px solid #3498db; }
+        #assistantPanel.eve-on-right:not(.eve-fullscreen) { right: 0; left: auto; border-left: 2px solid #3498db; }
+
+        #assistantPanel.eve-fullscreen {
+            width: 100% !important; height: 100% !important; left: 0 !important; right: 0 !important;
+            border: none !important; z-index: 2000 !important;
+        }
+        /* Adjust main content margin when Eve is in side panel mode */
+        body.eve-active:not(.eve-fullscreen-mode).eve-panel-on-left .main-content { margin-left: 380px; }
+        body.eve-active:not(.eve-fullscreen-mode).eve-panel-on-right .main-content { margin-right: 380px; }
+
+        /* Close section button position for LTR */
+        .main-content .close-section-btn { right: 15px; left:auto; } /* Default for LTR */
+        body.eve-active:not(.eve-fullscreen-mode).eve-panel-on-left .main-content .close-section-btn { right: 15px; left: auto; }
+
+
+        #assistantPanel h3 { margin-top: 0; color: #3498db; display: flex; align-items: center; }
+        #assistantPanel h3 .eve-icon { margin-right: 10px; /* Adjusted for LTR */ font-size: 1.5em; }
+        #assistantMessages { flex-grow: 1; overflow-y: auto; background-color: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #d1d5da; display: flex; flex-direction: column; }
+        .eve-bubble { background-color: #d1e7fd; color: #052c65; border-bottom-left-radius: 4px; /* LTR tail */ align-self: flex-start; padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 85%; word-wrap: break-word; line-height: 1.5;}
+        .user-bubble { background-color: #d4edda; color: #155724; border-bottom-right-radius: 4px; /* LTR tail */ align-self: flex-end; text-align: left; /* LTR text */ padding: 10px 15px; border-radius: 18px; margin-bottom: 10px; max-width: 85%; word-wrap: break-word; line-height: 1.5;}
+        #assistantInputArea { padding-top: 10px; border-top: 1px solid #d1d5da; }
+        #assistantCurrentQuestionLabel { display:block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
+        #assistantReplyTextarea, #assistantReplyInput, #assistantReplySelect { margin-bottom: 10px; }
+        #assistantQuestionOptionsDiv .assistant-option-btn, #assistantTemplateOptionsDiv .assistant-option-btn { display: block; width: 100%; margin-bottom: 6px; background-color: #5dade2; text-align: center; position: relative; }
+        #assistantQuestionOptionsDiv .assistant-option-btn:hover, #assistantTemplateOptionsDiv .assistant-option-btn:hover { background-color: #3498db; }
+        #assistantTemplateOptionsDiv { margin-bottom: 10px; }
+
+        .template-tooltip {
+            display: none; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%);
+            background-color: #333; color: white; padding: 8px 12px; border-radius: 6px;
+            z-index: 100; font-size: 0.9em; width: max-content; max-width: 300px;
+            white-space: pre-wrap; text-align: left; /* LTR text */ box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+         .assistant-option-btn:hover .template-tooltip { display: block; }
+
+        .assistant-panel-top-controls { display: flex; gap: 8px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;}
+        .assistant-panel-top-controls button { margin-top: 0; padding: 8px 12px; font-size: 0.9em; }
+        #switchToManualModeBtn, #previewProtocolBtn { background-color: #8e44ad; }
+        #switchToManualModeBtn:hover, #previewProtocolBtn:hover { background-color: #732d91; }
+        #assistantPanelCloseBtn { background-color: #e74c3c; } #assistantPanelCloseBtn:hover{ background-color: #c0392b;}
+        #assistantTogglePositionBtn { background-color: #f39c12; } #assistantTogglePositionBtn:hover { background-color: #e67e22;}
+
+        .modal {
+            display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888;
+            width: 80%; max-width: 700px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column;
+        }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content textarea {
+            width: 100%; min-height: 300px; margin-bottom: 15px; box-sizing: border-box;
+            background-color: #ecf0f1; color: #34495e; border: 1px solid #ced4da;
+            border-radius: 4px; padding: 10px; direction: ltr; /* LTR for modal textarea */
+        }
+        .modal-close-btn {
+            color: #aaa; align-self: flex-end; /* For LTR, moves to top-right */ font-size: 32px;
+            font-weight: bold; line-height: 1; padding: 0 5px;
+        }
+        .modal-close-btn:hover, .modal-close-btn:focus { color: black; text-decoration: none; cursor: pointer; }
+        .modal-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px;}
     </style>
 </head>
 <body>
-    <!--
-        UCP-LLM Generator HTML Tool
-        Copyright (c) 2024 Sameh Yassin
-        All rights reserved.
-        Version: 1.0.0
-    -->
-    <h1>UCP-LLM Protocol Generator</h1>
-
-    <div class="action-buttons">
-        <button id="toggleHelpBtn" onclick="toggleHelpSection()" title="Show/Hide User Guide and Help.">ℹ️ User Guide & Help</button>
+    <div id="protocolPreviewModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn" onclick="closeProtocolPreviewModal()">&times;</span>
+            <h2>📜 Current Protocol Preview</h2> <!-- Translated -->
+            <textarea id="modalProtocolOutput" readonly></textarea>
+            <div class="modal-actions">
+                <button onclick="copyModalProtocolToClipboard()" title="Copy text to clipboard">📋 Copy Text</button> <!-- Translated -->
+                <button onclick="saveModalProtocolAsTxt()" title="Save protocol as a text file">💾 Save as TXT</button> <!-- Translated -->
+                <button onclick="closeProtocolPreviewModal()">Close Preview</button> <!-- Translated -->
+            </div>
+        </div>
     </div>
 
-    <div id="helpSection" class="help-section" style="display: none;">
-        <h2>ℹ️ User Guide & Help</h2>
-        <p>Welcome to the UCP-LLM Protocol Generator! This tool helps you build a personal context protocol to enhance your interaction with Large Language Models.</p>
-        <h3>How to Use:</h3>
-        <ol>
-            <li><strong>Add Sections:</strong> Click the top control buttons (e.g., "➕ Personal Data", "➕ Project") to add different types of information to your protocol.</li>
-            <li><strong>Fill Data:</strong> After adding a section, input fields will appear. Fill these with relevant information.</li>
-            <li><strong>Add Multiple Items:</strong> Some sections (like "Projects" or "Ethical Values") allow multiple entries. Use the "➕ Add..." button within the section.</li>
-            <li><strong>Close Sections:</strong> To remove an added section, click "❌ Close This Section" at the top right of the section. You'll be warned before deletion.</li>
-            <li><strong>Generate Protocol:</strong> When done, click "✅ Generate & View Protocol". This will display the compiled protocol in the "Protocol Output" area.</li>
-            <li><strong>Export Protocol:</strong> You can then export it as a text file (.txt) or a JSON file using the export buttons. JSON is useful for programmatic use.</li>
-            <li><strong>Auto-Save:</strong> Your progress is auto-saved in your browser. If you close and return, you'll be asked if you want to restore previous work.</li>
-        </ol>
-        <h3>Purpose of the Protocol:</h3>
-        <p>UCP-LLM aims to provide LLMs with a deep understanding of your intellectual context, values, goals, and methodologies. This helps to:</p>
-        <ul>
-            <li>Reduce misunderstandings and superficial responses.</li>
-            <li>Make model interactions more personalized and relevant.</li>
-            <li>Save time and effort in re-explaining yourself.</li>
-            <li>Achieve "intellectual alignment" where the model thinks and acts consistently with your cognitive framework.</li>
-        </ul>
-        <button onclick="toggleHelpSection()">Close Help</button>
-    </div>
+    <div class="app-layout">
+        <div id="assistantPanel" class="hidden eve-on-left"> <!-- Default to left for LTR -->
+             <div class="assistant-panel-top-controls">
+                 <button id="assistantPanelCloseBtn" onclick="closeAssistant()" title="Close Eve">Close Eve</button> <!-- Translated -->
+                 <button id="assistantTogglePositionBtn" onclick="toggleEvePositionVisual()" title="Toggle Eve's position (left/right)">⇆</button>
+                 <button id="switchToManualModeBtn" onclick="switchToManualMode()" title="Switch to Manual Input Mode">Manual Mode</button> <!-- Translated -->
+                 <button id="previewProtocolBtn" onclick="showProtocolPreviewModal()" title="Preview current protocol">Preview Protocol</button> <!-- Translated -->
+            </div>
+            <h3><span class="eve-icon">🧚</span> Eve AI Assistant</h3> <!-- Translated -->
+            <div id="assistantMessages"></div>
+            <div id="assistantInputArea">
+                <label id="assistantCurrentQuestionLabel" for="assistantReplyInput"></label>
+                <div id="assistantTemplateOptionsDiv"></div>
+                <textarea id="assistantReplyTextarea" rows="3" style="display: none;" placeholder="Type your answer here..."></textarea> <!-- Translated -->
+                <input type="text" id="assistantReplyInput" style="display: none;" placeholder="Type your answer here..."> <!-- Translated -->
+                <select id="assistantReplySelect" style="display: none; margin-bottom:10px;"></select>
+                <div id="assistantQuestionOptionsDiv"></div>
+                <button id="assistantSendBtn" onclick="processAssistantReplyWithUIManager()" style="margin-top: 10px;">Send & Next</button> <!-- Translated -->
+                <button id="assistantSkipBtn" onclick="skipAssistantQuestion()" style="margin-top: 10px; background-color: #f39c12;">Skip Question</button> <!-- Translated -->
+                <button id="assistantAddAnotherBtn" onclick="assistantHandleAddAnother()" style="margin-top: 10px; background-color: #2ecc71; display:none;">➕ Add Another Item</button> <!-- Translated -->
+                <button id="assistantDoneWithSectionBtn" onclick="assistantHandleDoneWithSection()" style="margin-top: 10px; background-color: #3498db; display:none;">Continue to Next Section</button> <!-- Translated -->
+            </div>
+        </div>
 
-    <div id="controlButtonsContainer" class="control-buttons"></div>
-    <div id="mainContainer" class="main-container"></div>
-    <br><br>
-    <div class="action-buttons">
-        <button id="generateProtocolBtn" onclick="generateProtocol()" title="Click to compile all entered data and generate the protocol text.">✅ Generate & View Protocol</button>
-        <button id="exportTxtBtn" onclick="exportProtocolAsTxt()" class="export-btn txt" title="Export the displayed protocol as a text file (.txt)">📄 Export as TXT</button>
-        <button id="exportJsonBtn" onclick="exportProtocolAsJson()" class="export-btn json" title="Export the protocol as a structured JSON file.">💾 Export as JSON</button>
-        <button id="clearAllDataBtn" onclick="clearAllDataWithConfirmation()" class="export-btn" style="background-color: #e74c3c;" title="Clear all sections and entered data to start fresh.">🧹 Clear All & Restart</button>
-    </div>
-
-    <div class="section-type-container protocol-output-section">
-        <h2>📜 Protocol Output (Preview)</h2>
-        <textarea id="protocolOutput" rows="30" readonly style="background-color: #ecf0f1; color: #34495e;"></textarea>
+        <div class="main-content">
+            <h1>UCP-LLM Protocol Generator <span style="font-size: 0.7em; color: #7f8c8d;">(with Eve 🧚)</span></h1> <!-- Translated -->
+            <div class="action-buttons">
+                <button id="startAssistantBtn" onclick="toggleAssistant(true)" title="Start guided setup with Eve in fullscreen mode!">🧚 Start with Eve (Fullscreen)</button> <!-- Translated -->
+                 <button onclick="toggleAssistant(false)" title="Use Eve as a side panel">🧚 Eve (Side Panel)</button> <!-- Translated -->
+                <button id="toggleHelpBtn" onclick="toggleHelpSection()" title="Show/Hide User Guide and Help.">ℹ️ User Guide & Help</button> <!-- Translated -->
+            </div>
+            <div id="helpSection" class="help-section" style="display: none;">
+                <h2>ℹ️ User Guide & Help</h2> <!-- Translated -->
+                <p>Welcome to the UCP-LLM Protocol Generator! This tool helps you build a personal context protocol to enhance your interaction with Large Language Models.</p> <!-- Translated -->
+                <h3>How to Use:</h3> <!-- Translated -->
+                <ol>
+                    <li><strong>Start with Eve (Recommended):</strong> <!-- Translated -->
+                        <ul>
+                            <li>"🧚 Start with Eve (Fullscreen)": For an immersive experience where Eve takes over the screen, ideal for focused input.</li> <!-- Translated -->
+                            <li>"🧚 Eve (Side Panel)": To use Eve as a sidebar while the main interface remains visible.</li> <!-- Translated -->
+                        </ul>
+                    </li>
+                    <li><strong>Switching Modes:</strong> <!-- Translated -->
+                        <ul>
+                            <li>If you are in any of Eve's modes, you can use the "Manual Mode" button in Eve's panel to return to the full manual input interface (Eve will hide).</li> <!-- Translated -->
+                            <li>From the main interface, you can always activate Eve with one of the dedicated buttons.</li> <!-- Translated -->
+                        </ul>
+                    </li>
+                    <li><strong>Preview Protocol with Eve:</strong> In any Eve mode, use the "Preview Protocol" button to see the current protocol in a pop-up window. You can copy the text or save it as a TXT file from there.</li> <!-- Translated -->
+                    <li><strong>Ready-made Templates:</strong> When using Eve, she might suggest templates for certain fields (e.g., ethical values). You can choose one as a starting point.</li> <!-- Translated -->
+                    <li><strong>Eve's Creative Questions:</strong> All your answers to Eve's creative questions (like your preferences or future vision) are saved in the "Additional General Notes" section of the protocol.</li> <!-- Translated -->
+                    <li><strong>Eve's Reminders:</strong> When reopening a session with Eve, she might remind you of important sections you haven't filled out yet.</li> <!-- Translated -->
+                    <li><strong>Manual Addition:</strong> In Manual Mode (when the main interface is fully visible), click the top control buttons (e.g., "➕ Personal Data") to add sections.</li> <!-- Translated -->
+                    <li><strong>Fill Data:</strong> After adding a section, fill in the fields with relevant information.</li> <!-- Translated -->
+                    <li><strong>Close Sections:</strong> To remove an added section, click "❌ Close This Section".</li> <!-- Translated -->
+                    <li><strong>Generate & Export Protocol:</strong> When done (via Eve or manually), you can use the "✅ Generate & View Protocol" button (in Manual Mode) and the export buttons.</li> <!-- Translated -->
+                    <li><strong>Auto-Save:</strong> Your progress is automatically saved in your browser.</li> <!-- Translated -->
+                </ol>
+                <h3>Purpose of the Protocol:</h3> <!-- Translated -->
+                 <p>UCP-LLM aims to provide LLMs with a deep understanding of your intellectual context, values, goals, and methodologies. This helps to:</p> <!-- Translated -->
+                <ul>
+                    <li>Reduce misunderstandings and superficial responses.</li> <!-- Translated -->
+                    <li>Make model interactions more personalized and relevant.</li> <!-- Translated -->
+                    <li>Save time and effort in re-explaining yourself.</li> <!-- Translated -->
+                    <li>Achieve "intellectual alignment" where the model thinks and acts consistently with your cognitive framework.</li> <!-- Translated -->
+                </ul>
+                <button onclick="toggleHelpSection()">Close Help</button> <!-- Translated -->
+            </div>
+            <div id="controlButtonsContainer" class="control-buttons"></div>
+            <div id="mainContainer" class="main-container"></div>
+            <br><br>
+            <div class="action-buttons">
+                <button id="generateProtocolBtn" onclick="generateProtocol()" title="Click to compile all entered data and generate the protocol text.">✅ Generate & View Protocol</button> <!-- Translated -->
+                <button id="exportTxtBtn" onclick="exportProtocolAsTxt()" class="export-btn txt" title="Export the displayed protocol as a text file (.txt)">📄 Export as TXT</button> <!-- Translated -->
+                <button id="exportJsonBtn" onclick="exportProtocolAsJson()" class="export-btn json" title="Export the protocol as a structured JSON file.">💾 Export as JSON</button> <!-- Translated -->
+                <button id="clearAllDataBtn" onclick="clearAllDataWithConfirmation()" class="export-btn" style="background-color: #e74c3c;" title="Clear all sections and entered data to start fresh.">🧹 Clear All & Restart</button> <!-- Translated -->
+            </div>
+            <div class="section-type-container protocol-output-section">
+                <h2>📜 Protocol Output (Preview)</h2> <!-- Translated -->
+                <textarea id="protocolOutput" rows="30" readonly style="background-color: #ecf0f1; color: #34495e; direction: ltr;"></textarea> <!-- Changed direction to LTR -->
+            </div>
+        </div>
     </div>
 
 <script>
-    // UCP-LLM Generator HTML Tool - JavaScript Logic
-    // Copyright (c) 2024 Sameh Yassin. All rights reserved. Version: 1.0.0
-
-    const UCP_LLM_STORAGE_KEY = 'ucpLlmGeneratorData_v1_0_0_EN_Complete';
+    // UCP-LLM Generator HTML Tool - JavaScript Logic (Eve Immersive, Templates, Refined Features 🧚) - English
+    // Copyright (c) 2024 Sameh Yassin. All rights reserved. Version: 1.1.0-eve-EN
+    const UCP_LLM_STORAGE_KEY = 'ucpLlmGeneratorData_v1_1_0_EN_Eve'; // Updated key for English version
+    const EVE_POSITION_KEY = 'ucpLlmEvePosition_v1_1_0_EN'; // Updated key
+    const CURRENT_APP_VERSION = "UCP-LLM Generator v1.1.0-eve-EN (English)"; // For version checking
     let autoSaveTimeout;
+    let isProcessingEveReply = false;
 
-    const sectionTypeData = {
+    const sectionTypeData = { // Translated to English
         personal: {
             title: '👤 Personal Data', controlButtonText: '➕ Personal Data', maxItems: 1,
             fields: [
@@ -120,7 +249,7 @@
                 { label: 'How do you apply it, and what is its importance to you?', type: 'textarea', name: 'thinking_reference_application', jsonKey: 'thinkingReferenceApplication' }
             ]
         },
-        cognitive_passion: { // Renamed from your Arabic version's 'الشغف المعرفي'
+        cognitive_passion: {
             title: '💡 Cognitive Passion & Research Patterns', controlButtonText: '➕ Cognitive Passion',
             fields: [
                 { label: 'Name of Cognitive Passion (e.g., Numerology, History of Philosophy)', type: 'text', name: 'passion_name', jsonKey: 'cognitivePassionName' },
@@ -130,14 +259,15 @@
         ethical_values: {
             title: '⚖️ Guiding Ethical Values', controlButtonText: '➕ Ethical Values',
             fields: [
-                { label: 'Ethical Value Name (e.g., Honesty, Justice, Empathy)', type: 'text', name: 'value_name', jsonKey: 'ethicalValueName' },
+                { label: 'Ethical Value Name', type: 'text', name: 'value_name', jsonKey: 'ethicalValueName',
+                  templates: ["Honesty", "Justice", "Integrity", "Compassion", "Courage", "Respect", "Responsibility", "Altruism", "Humility", "Wisdom", "Loyalty", "Cooperation", "Forgiveness", "Gratitude", "Patience"] },
                 { label: 'Explanation, manifestations, importance, and relative priority', type: 'textarea', name: 'value_description', jsonKey: 'ethicalValueExplanation' }
             ]
         },
-        concepts_perspective: { // Renamed from 'المنظور تجاه مفاهيم جوهرية'
+        concepts_perspective: {
             title: '👁️ Perspective on Core Concepts', controlButtonText: '➕ Core Concepts Perspective',
             fields: [
-                { label: 'Core Concept Name (e.g., Uglieness, Chaos, Extended Beauty, Ambiguity)', type: 'text', name: 'core_concept_name', jsonKey: 'coreConceptName' },
+                { label: 'Core Concept Name (e.g., Ugliness, Chaos, Extended Beauty, Ambiguity)', type: 'text', name: 'core_concept_name', jsonKey: 'coreConceptName' },
                 { label: 'Your perspective and interpretation of this concept', type: 'textarea', name: 'core_concept_perspective', jsonKey: 'coreConceptPerspective' }
             ]
         },
@@ -163,15 +293,20 @@
             ]
         },
         projects: {
-            title: '📌 Projects & Objectives', controlButtonText: '➕ Project/Objective', // Combined for simplicity
+            title: '📌 Projects & Objectives', controlButtonText: '➕ Project/Objective',
             fields: [
                 { label: 'Project or Objective Name/Title', type: 'text', name: 'project_name', jsonKey: 'projectOrObjectiveTitle' },
-                { label: 'Detailed Primary Goals/Description', type: 'textarea', name: 'project_goals', jsonKey: 'projectDetailedGoals' },
+                { label: 'Detailed Primary Goals/Description', type: 'textarea', name: 'project_goals', jsonKey: 'projectDetailedGoals',
+                  templates: [
+                      "The main goal is [brief description], aiming to achieve [desired outcome] within [timeframe].",
+                      "Through this project, I seek to [verb], which will contribute to [positive impact].",
+                      "This aims to develop [something] into [better state], focusing on [specific aspect]."
+                  ]
+                },
                 { label: 'Associated Concepts/Tools (Optional)', type: 'textarea', name: 'project_concepts_tools', jsonKey: 'projectAssociatedConcepts' },
                 { label: 'Specific LLM Role for Contribution', type: 'textarea', name: 'project_llm_role', jsonKey: 'projectLLMRole' }
             ]
         },
-        // Merged 'goals' into 'projects' as 'objectives' for a more unified section. If you want 'goals' separate, create a new entry.
         pivotal_examples: {
             title: '🧪 Pivotal Examples', controlButtonText: '➕ Pivotal Example',
             fields: [
@@ -187,14 +322,14 @@
                 { label: 'Explain the nature of the causal relationship you see', type: 'textarea', name: 'relation_description', jsonKey: 'causalRelationDescription' }
             ]
         },
-        role: { // LLM Role Definition
+        role: {
             title: '🎭 LLM Functional Persona', controlButtonText: '➕ LLM Persona', maxItems: 1,
             fields: [
                 { label: 'Primary Role Required from LLM (e.g., Advanced Research Assistant, Constructive Critic)', type: 'text', name: 'llm_role_primary', jsonKey: 'llmPrimaryRole' },
                 { label: 'Specific attributes or behaviors associated with this role', type: 'textarea', name: 'llm_role_attributes', jsonKey: 'llmRoleAttributes' }
             ]
         },
-        conceptual_tuning: { // Same as before
+        conceptual_tuning: {
             title: '📚 Conceptual Tuning (User-Specific Terms)', controlButtonText: '➕ Conceptual Tuning',
             fields: [
                 { label: 'Your Specific Concept or Term', type: 'text', name: 'user_concept_term', jsonKey: 'userSpecificTerm' },
@@ -208,7 +343,7 @@
                 { label: 'Styles for LLM to avoid (e.g., Oversimplification, Unjustified emotional responses)', type: 'textarea', name: 'avoid_style', jsonKey: 'stylesToAvoid' }
             ]
         },
-        intervention_level: { // Same as before
+        intervention_level: {
             title: '⚙️ Model Intervention Level', controlButtonText: '➕ Intervention Level', maxItems: 1,
             fields: [
                 { type: 'select', name: 'intervention_select', label: 'Chosen Intervention Level', jsonKey: 'chosenInterventionLevel',
@@ -245,11 +380,11 @@
                 { label: 'How can the LLM help you recall important points from the protocol?', type: 'textarea', name: 'memory_protocol_recall', jsonKey: 'protocolRecallMechanism' }
             ]
         },
-        cognitive_preferences: { // This was a generic one, making it more specific based on the example
+        cognitive_preferences: {
             title: '🤔 Cognitive/Behavioral Preferences', controlButtonText: '➕ Cognitive Preference',
             fields: [ { label: 'Describe an important cognitive or behavioral preference (e.g., Prefer big picture then details)', type: 'textarea', name: 'preference_description', jsonKey: 'cognitiveBehavioralPreference' } ]
         },
-        mental_state: { // Same as before
+        mental_state: {
             title: '🧠 Mental State (Optional & Updatable)', controlButtonText: '➕ Mental State', maxItems: 1,
             fields: [
                 { type: 'select', name: 'mental_state_select', label: 'Selected Mental State', jsonKey: 'selectedMentalState',
@@ -257,7 +392,7 @@
                 { label: 'Additional notes on your mental state (Optional)', type: 'textarea', name: 'mental_state_notes', jsonKey: 'mentalStateNotes' }
             ]
         },
-        sports_inclinations: { // Same as before
+        sports_inclinations: {
             title: '🏅 Sports Inclinations', controlButtonText: '➕ Sports Inclinations', maxItems: 1,
             fields: [
                 { type: 'select', name: 'sport_select', label: 'Chosen Sports Inclination', jsonKey: 'chosenSportInclination',
@@ -266,295 +401,424 @@
             ]
         },
         additional_notes: {
-            title: '📝 Additional General Notes', controlButtonText: '➕ Additional Notes',
-            fields: [ { label: 'Any other information or general directives not covered elsewhere', type: 'textarea', name: 'general_notes', jsonKey: 'additionalGeneralNotes' } ]
+            title: '📝 Additional General Notes (and Eve\'s Questions)', controlButtonText: '➕ Additional Notes',
+            fields: [ { label: 'Any other information or general directives not covered elsewhere (or answers to Eve\'s creative questions)', type: 'textarea', name: 'general_notes', jsonKey: 'additionalGeneralNotes' } ]
         }
     };
 
-    // JavaScript functions (initializeControlButtons, createSectionTypeContainer, addItemToSection,
-    // scheduleAutoSave, getStructuredData, generateProtocol, exportProtocolAsTxt, exportProtocolAsJson,
-    // saveDataToLocalStorage, loadDataFromLocalStorage, reconstructUIFromData,
-    // toggleHelpSection, clearAllDataWithConfirmation) remain largely the same as in your v2.6,
-    // with the key change being in getStructuredData to use `fieldDef.jsonKey` for JSON export
-    // and `fieldDef.label` for the text protocol display.
+    const eveInventedQuestions = [ // Translated to English
+        { id: "sun_moon", question: "My creative friend, what do you love more: the sun's ☀️ life-filling warmth, or the moon's 🌙 dream-inspiring serenity?", type: "mc", options: ["The Warm Sun ☀️", "The Enchanting Moon 🌙", "Both have their own special magic ✨"] },
+        { id: "season", question: "Every season has its charm! Which is closest to your heart: summer adventures 🏖️, cozy winter tales ☕, vibrant spring colors 🌸, or calm autumn reflections 🍂?", type: "mc", options: ["Fun-filled Summer 🏖️", "Warm & Beautiful Winter ☕", "Lively Spring 🌸", "Charming Autumn Colors 🍂"] },
+        { id: "reading_writing", question: "When it comes to words, do you find yourself more inclined to read stories written by others 📚, or to write your own stories and ideas ✍️?", type: "tf_custom", options: [{text: "I adore reading and exploring new worlds 📚!", value: "I lean more towards reading"}, {text: "I love expressing myself through writing and creating my own worlds ✍️!", value: "I lean more towards writing"}, {text: "I enjoy both equally!", value: "I love both reading and writing"}] },
+        { id: "art_music", question: "Art touches the soul in different ways. Are you more captivated by the beauty of visual arts 🎨, or the magic of melodies and music 🎶?", type: "mc", options: ["Visual arts and their colors 🎨", "Music and its sweet melodies 🎶", "Both inspire me uniquely 💖"] },
+        { id: "future_vision", question: "If you look to the future, how do you imagine yourself in five years? And what role might AI play in that journey? 🚀", type: "textarea" },
+        { id: "biggest_challenge", question: "What is the most significant intellectual or creative challenge you are currently striving to overcome? 💪", type: "textarea" },
+        { id: "ideal_day", question: "If you could design a perfect day, what would your routine look like and what activities would fill it? 🌟", type: "textarea"},
+        { id: "learning_style", question: "When learning something new, do you prefer to dive into the details directly 🔬, or understand the big picture first 🗺️?", type: "mc", options: ["Details first 🔬", "The big picture 🗺️", "A mix of both 🧩"]},
+        { id: "tech_philosophy", question: "What is your philosophy towards modern technology? Do you see it as a mere tool, or as a potential partner in creativity and thought? 🤖💡", type: "textarea"},
+        { id: "unexpected_joy", question: "What simple, unexpected thing can bring joy to your day? 😊", type: "text"}
+    ];
 
-    // --- Start of JS Functions (Ensure they are identical to your v2.6, with the getStructuredData modification) ---
+    // Eve Assistant State and other JS variables remain structurally the same
+    let assistantState = {
+        active: false, isFullScreen: false, currentSectionKeyIndex: 0, currentFieldIndex: 0, currentItemCountForSection: 0,
+        isAskingToAddAnother: false, currentInventedQuestionIndex: -1, currentQuestionContext: null,
+        sessionStartedOnce: false, needsFullReset: true, isReopeningSession: false, pendingSectionStart: null
+    };
+    let eveCurrentPosition = 'left'; // Default for LTR
 
-    function initializeControlButtons() {
-        const controlButtonsContainer = document.getElementById('controlButtonsContainer');
-        controlButtonsContainer.innerHTML = '';
-        Object.keys(sectionTypeData).forEach(typeKey => {
-            const typeInfo = sectionTypeData[typeKey];
-            const button = document.createElement('button');
-            button.textContent = typeInfo.controlButtonText || `➕ ${typeInfo.title}`;
-            button.id = `control-btn-${typeKey}`;
-            button.title = typeInfo.tooltip || `Add section: ${typeInfo.title}`;
-            button.onclick = () => createSectionTypeContainer(typeKey);
-            controlButtonsContainer.appendChild(button);
-        });
+    // DOM element getters remain the same
+    const assistantPanel = document.getElementById('assistantPanel');
+    const modalProtocolOutput = document.getElementById('modalProtocolOutput');
+    const protocolPreviewModal = document.getElementById('protocolPreviewModal');
+    const assistantMessagesDiv = document.getElementById('assistantMessages');
+    const assistantReplyInput = document.getElementById('assistantReplyInput');
+    const assistantReplyTextarea = document.getElementById('assistantReplyTextarea');
+    const assistantReplySelect = document.getElementById('assistantReplySelect');
+    const assistantCurrentQuestionLabel = document.getElementById('assistantCurrentQuestionLabel');
+    const assistantSendBtn = document.getElementById('assistantSendBtn');
+    const assistantSkipBtn = document.getElementById('assistantSkipBtn');
+    const assistantAddAnotherBtn = document.getElementById('assistantAddAnotherBtn');
+    const assistantDoneWithSectionBtn = document.getElementById('assistantDoneWithSectionBtn');
+    const assistantQuestionOptionsDiv = document.getElementById('assistantQuestionOptionsDiv');
+    const assistantTemplateOptionsDiv = document.getElementById('assistantTemplateOptionsDiv');
+
+    // --- Eve Functions (Translated and refined) ---
+    function getGreetingByTime() { // Translated
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good day";
+        return "Good evening";
     }
 
-    function createSectionTypeContainer(typeKey) {
-        const mainContainer = document.getElementById("mainContainer");
-        let container = document.getElementById(`container-${typeKey}`);
-        const controlButton = document.getElementById(`control-btn-${typeKey}`);
+    function applyEveVisualState() { /* ... (Same logic, CSS classes handle LTR/RTL implications) ... */ const body = document.body; if (assistantState.active) { assistantPanel.classList.remove('hidden'); body.classList.add('eve-active'); if (assistantState.isFullScreen) { assistantPanel.classList.add('eve-fullscreen'); body.classList.add('eve-fullscreen-mode'); assistantPanel.classList.remove('eve-on-left', 'eve-on-right'); body.classList.remove('eve-panel-on-left', 'eve-panel-on-right'); } else { assistantPanel.classList.remove('eve-fullscreen'); body.classList.remove('eve-fullscreen-mode'); if (eveCurrentPosition === 'left') { assistantPanel.classList.remove('eve-on-right'); assistantPanel.classList.add('eve-on-left'); body.classList.remove('eve-panel-on-right'); body.classList.add('eve-panel-on-left'); } else { assistantPanel.classList.remove('eve-on-left'); assistantPanel.classList.add('eve-on-right'); body.classList.remove('eve-panel-on-left'); body.classList.add('eve-panel-on-right'); } } } else { assistantPanel.classList.add('hidden'); body.classList.remove('eve-active', 'eve-fullscreen-mode', 'eve-panel-on-left', 'eve-panel-on-right'); } }
+    function toggleEvePositionVisual() { /* ... (Same logic) ... */ eveCurrentPosition = (eveCurrentPosition === 'left') ? 'right' : 'left'; localStorage.setItem(EVE_POSITION_KEY, eveCurrentPosition); applyEveVisualState(); }
 
-        if (!container) {
-            container = document.createElement("div");
-            container.className = "section-type-container";
-            container.id = `container-${typeKey}`;
-            const typeInfo = sectionTypeData[typeKey];
-            const header = document.createElement("h2");
-            header.textContent = typeInfo.title;
-            container.appendChild(header);
-            const closeSectionButton = document.createElement("button");
-            closeSectionButton.textContent = "❌ Close This Section";
-            closeSectionButton.className = "close-section-btn";
-            closeSectionButton.onclick = () => {
-                if (confirm("Are you sure you want to close this section? All entered data for this section will be lost.")) {
-                    mainContainer.removeChild(container);
-                    if (controlButton) controlButton.classList.remove('hidden');
-                    saveDataToLocalStorage();
-                }
-            };
-            container.appendChild(closeSectionButton);
-            const itemsContainer = document.createElement("div");
-            itemsContainer.id = `items-${typeKey}`;
-            container.appendChild(itemsContainer);
-            if (!typeInfo.maxItems || typeInfo.maxItems > 1) {
-                const addButton = document.createElement("button");
-                addButton.textContent = `➕ Add ${typeInfo.title.split(' ')[0] || 'New Item'}`; // Improved add button text
-                addButton.className = "add-item-btn";
-                addButton.onclick = () => addItemToSection(typeKey);
-                container.appendChild(addButton);
-            }
-            mainContainer.appendChild(container);
-            if (controlButton) controlButton.classList.add('hidden');
-            // container.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Can be annoying, optional
-        }
-        if (!sectionTypeData[typeKey].maxItems || document.getElementById(`items-${typeKey}`).children.length < sectionTypeData[typeKey].maxItems) {
-            addItemToSection(typeKey);
-        }
-        saveDataToLocalStorage();
-    }
-
-    function addItemToSection(typeKey) {
-        const itemsContainer = document.getElementById(`items-${typeKey}`);
-        const typeInfo = sectionTypeData[typeKey];
-        if (typeInfo.maxItems && itemsContainer.children.length >= typeInfo.maxItems) {
-            alert(`You cannot add more than ${typeInfo.maxItems} item(s) to this section.`);
-            return;
-        }
-        const entryDiv = document.createElement("div");
-        entryDiv.className = "entry";
-        entryDiv.setAttribute('data-type', typeKey);
-        typeInfo.fields.forEach(field => {
-            let fieldElement;
-            const label = document.createElement('label');
-            label.textContent = field.label + ":";
-            entryDiv.appendChild(label);
-            if (field.type === 'textarea') {
-                fieldElement = document.createElement("textarea");
-            } else if (field.type === 'select') {
-                fieldElement = document.createElement("select");
-                if (field.options && field.options.every(opt => opt.value !== "")) { // Check if a placeholder is needed
-                    const defaultOption = document.createElement("option");
-                    defaultOption.value = ""; defaultOption.textContent = field.placeholder || "-- Select --"; // Use placeholder for select if available
-                    fieldElement.appendChild(defaultOption);
-                }
-                (field.options || []).forEach(opt => {
-                    const option = document.createElement("option");
-                    option.value = opt.value; option.textContent = opt.text;
-                    fieldElement.appendChild(option);
-                });
-            } else { // input type
-                fieldElement = document.createElement("input");
-                fieldElement.type = field.type || "text";
-            }
-            fieldElement.name = field.name;
-            fieldElement.placeholder = field.placeholder || field.label;
-            fieldElement.id = `${field.name}-${itemsContainer.children.length}-${Math.random().toString(36).substr(2, 5)}`;
-            label.htmlFor = fieldElement.id;
-            fieldElement.addEventListener('input', scheduleAutoSave);
-            fieldElement.addEventListener('change', scheduleAutoSave);
-            entryDiv.appendChild(fieldElement);
-        });
-        itemsContainer.appendChild(entryDiv);
-        saveDataToLocalStorage();
-    }
-
-    function scheduleAutoSave() { clearTimeout(autoSaveTimeout); autoSaveTimeout = setTimeout(saveDataToLocalStorage, 1500); }
-
-    function getStructuredData(forStorage = false) {
-        const protocolData = {
-            protocolVersion: "UCP-LLM Generator v1.0.0",
-            generationDate: new Date().toISOString(),
-            sections: []
-        };
-        Object.keys(sectionTypeData).forEach(typeKey => {
-            const container = document.getElementById(`container-${typeKey}`);
-            if (container) {
-                const itemsContainer = document.getElementById(`items-${typeKey}`);
-                if (itemsContainer && itemsContainer.children.length > 0) {
-                    const typeInfo = sectionTypeData[typeKey];
-                    const section = {
-                        id: typeKey,
-                        title: typeInfo.title, // Storing the English display title for context in JSON
-                        items: []
-                    };
-                    let sectionHasContent = false;
-                    Array.from(itemsContainer.children).forEach(entry => {
-                        const itemData = {};
-                        let itemHasContent = false;
-                        entry.querySelectorAll("input, textarea, select").forEach(inp => {
-                            const fieldDef = typeInfo.fields.find(f => f.name === inp.name);
-                            if (fieldDef && inp.value && inp.value.trim() !== "" && (inp.tagName !== 'SELECT' || inp.value !== "")) {
-                                let valueToStore = inp.value;
-                                if (inp.tagName === 'SELECT' && !forStorage && inp.options[inp.selectedIndex]) {
-                                     valueToStore = (inp.options[inp.selectedIndex].text !== (fieldDef.placeholder || "-- Select --")) ? inp.options[inp.selectedIndex].text : "";
-                                     if (!valueToStore) return;
-                                }
-                                itemData[fieldDef.jsonKey || fieldDef.name] = valueToStore; // CRITICAL: Use jsonKey
-                                itemHasContent = true;
-                            }
-                        });
-                        if (itemHasContent) { section.items.push(itemData); sectionHasContent = true; }
-                    });
-                    if (sectionHasContent) { protocolData.sections.push(section); }
+    function toggleAssistant(startInFullScreen = false) { // Translated messages
+        assistantState.active = !assistantState.active;
+        if (assistantState.active) {
+            assistantState.isFullScreen = startInFullScreen;
+            if (!assistantState.sessionStartedOnce || assistantState.needsFullReset) {
+                startFullAssistantSession();
+            } else {
+                assistantState.isReopeningSession = true;
+                const firstEmptySection = findFirstEmptySection();
+                if (firstEmptySection) {
+                    assistantState.pendingSectionStart = firstEmptySection.key;
+                    eveSpeak(`${getGreetingByTime()} ${getUserPreferredName()}! Glad to see you again. I noticed the section "${firstEmptySection.title}" hasn't been filled out yet. Would you like to start there?`);
+                    assistantCurrentQuestionLabel.textContent = `Start with section "${firstEmptySection.title}"?`;
+                    const optionsDiv = assistantQuestionOptionsDiv; optionsDiv.innerHTML = '';
+                    const yesBtn = document.createElement('button');
+                    yesBtn.textContent = `Yes, start with "${firstEmptySection.title}"`;
+                    yesBtn.className = 'assistant-option-btn';
+                    yesBtn.onclick = () => { jumpToSection(assistantState.pendingSectionStart); assistantState.pendingSectionStart = null; assistantState.isReopeningSession = false; askNextAssistantQuestion(); };
+                    optionsDiv.appendChild(yesBtn);
+                    const noBtn = document.createElement('button');
+                    noBtn.textContent = "No, continue where we left off";
+                    noBtn.className = 'assistant-option-btn';
+                    noBtn.onclick = () => { optionsDiv.innerHTML = ''; assistantState.pendingSectionStart = null; askNextAssistantQuestion(); };
+                    optionsDiv.appendChild(noBtn);
+                    manageAssistantInputVisibility(false, false, false, true, false, false, false, false, false);
+                } else {
+                    eveSpeak(`${getGreetingByTime()} ${getUserPreferredName()}! Glad to see you again. Remember, you can always edit any previously entered information through the manual interface. Let's continue.`);
+                    askNextAssistantQuestion();
                 }
             }
-        });
-        return protocolData;
-    }
-
-    function generateProtocol() { // For TXT output display
-        const structuredData = getStructuredData(false); // false for display text
-        if (structuredData.sections.length === 0) {
-            document.getElementById("protocolOutput").value = "No sections with content have been added. Please add information to generate the protocol.";
-            return "";
+        } else {
+            assistantState.isReopeningSession = false; assistantState.pendingSectionStart = null;
         }
-        let output = `User Context Protocol (UCP-LLM) - Generated by Generator v1.0.0\n`;
-        output += `Generation Date: ${new Date(structuredData.generationDate).toLocaleString('en-US')}\n\n`;
-        output += `--- Initial Directives for the LLM ---\n`;
-        output += `This protocol aims to provide you, the LLM, with a comprehensive understanding of the user. Deeply assimilate this to facilitate advanced, context-aware, and intellectually aligned interactions. This is a Core Contextual Anchor (CCA) and a living document.\n\n`;
-        structuredData.sections.forEach((section, sectionIndex) => {
-            output += `${sectionIndex + 1}. Section: ${section.title}\n`; // Uses the English title stored in JSON
-            section.items.forEach((item, itemIndex) => {
-                if (section.items.length > 1 && Object.keys(item).length > 0) {
-                    output += `  Item (${itemIndex + 1}):\n`;
-                }
-                // For text output, we want to show the 'label' not the 'jsonKey'
-                const typeInfo = sectionTypeData[section.id]; // Get the definition for this section type
-                Object.keys(item).forEach(jsonKeyForItem => { // jsonKeyForItem is like "preferredName"
-                    const fieldDef = typeInfo.fields.find(f => f.jsonKey === jsonKeyForItem);
-                    const displayLabel = fieldDef ? fieldDef.label : jsonKeyForItem; // Fallback to jsonKey if no label
-                    output += `    - ${displayLabel}: ${item[jsonKeyForItem]}\n`;
-                });
-            });
-            output += "\n";
-        });
-        output += `--- Concluding Note for the Model ---\nUnderstanding is an ongoing process. Aim for maximum intellectual alignment based on this document.\n`;
-        document.getElementById("protocolOutput").value = output.trim();
-        return output.trim();
+        applyEveVisualState();
     }
 
-    function exportProtocolAsTxt() {
-        const protocolText = generateProtocol();
-        if (!protocolText || protocolText.includes("No sections with content")) {
-            alert("Please generate the protocol or add data first."); return;
+    function findFirstEmptySection() { /* ... (Same logic as v1.0.6-eve-FR) ... */ const data = getStructuredData(true); const sectionKeysInOrder = Object.keys(sectionTypeData); for (const key of sectionKeysInOrder) { const sectionDef = sectionTypeData[key]; if (!sectionDef.fields || sectionDef.fields.length === 0) continue; const existingSectionData = data.sections.find(s => s.id === key); if (!existingSectionData || existingSectionData.items.length === 0) { return { key: key, title: sectionDef.title }; } else if (sectionDef.maxItems === 1) { const item = existingSectionData.items[0]; let allFieldsEmptyInItem = true; for (const fieldDef of sectionDef.fields) { const value = item[fieldDef.jsonKey]; if (value !== null && value !== undefined && String(value).trim() !== "") { allFieldsEmptyInItem = false; break; } } if (allFieldsEmptyInItem) { return { key: key, title: sectionDef.title }; } } } return null; }
+    function jumpToSection(sectionKey) { /* ... (Same logic as v1.0.6-eve-FR) ... */ const keys = Object.keys(sectionTypeData); const sectionIndex = keys.indexOf(sectionKey); if (sectionIndex !== -1) { assistantState.currentSectionKeyIndex = sectionIndex; assistantState.currentFieldIndex = 0; assistantState.currentItemCountForSection = 0; assistantState.isAskingToAddAnother = false; assistantState.currentInventedQuestionIndex = -1; assistantState.isReopeningSession = false; } }
+    function switchToManualMode() { /* ... (Same logic) ... */ assistantState.isFullScreen = false; assistantState.active = false; applyEveVisualState(); }
+    function showProtocolPreviewModal() { /* ... (Same logic, translated placeholder) ... */ const protocolText = generateProtocol(); modalProtocolOutput.value = protocolText || "Nothing to display yet. Start filling out the protocol!"; protocolPreviewModal.style.display = "flex"; }
+    function closeProtocolPreviewModal() { /* ... (Same logic) ... */ protocolPreviewModal.style.display = "none"; }
+    function closeAssistant() { /* ... (Same logic) ... */ if (assistantState.active) { toggleAssistant(false); } }
+
+    function startFullAssistantSession() { // Translated welcome
+        assistantMessagesDiv.innerHTML = '';
+        eveSpeak(`${getGreetingByTime()} ${getUserPreferredName()}! I'm Eve 🧚, your smart assistant. I'll be very happy to help you build your personal protocol step by step. Let's start this fun journey! 🚀`);
+        assistantState.currentSectionKeyIndex = 0; assistantState.currentFieldIndex = 0; assistantState.currentItemCountForSection = 0;
+        assistantState.isAskingToAddAnother = false; assistantState.currentInventedQuestionIndex = -1; assistantState.currentQuestionContext = null;
+        assistantState.sessionStartedOnce = true; assistantState.needsFullReset = false; assistantState.isReopeningSession = false; assistantState.pendingSectionStart = null;
+        askNextAssistantQuestion();
+    }
+
+    function copyModalProtocolToClipboard() { // Translated alert
+        modalProtocolOutput.select(); modalProtocolOutput.setSelectionRange(0, 99999);
+        try {
+            navigator.clipboard.writeText(modalProtocolOutput.value);
+            alert("Protocol text copied to clipboard!");
+        } catch (err) {
+            alert("Sorry, your browser could not copy. You can copy it manually.");
+            console.error('Failed to copy text: ', err);
+        }
+    }
+    function saveModalProtocolAsTxt() { // Translated alert, refined filename
+        const protocolText = modalProtocolOutput.value;
+        if (!protocolText || protocolText.includes("Nothing to display yet")) {
+            alert("No protocol to save yet."); return;
         }
         const blob = new Blob([protocolText], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
+        const appVersionString = CURRENT_APP_VERSION.split('(')[0].trim();
+        const versionForFile = appVersionString.replace(/[^a-zA-Z0-9-_.]/g, '_').replace(/_+/g, '_');
         link.href = URL.createObjectURL(blob);
-        link.download = 'UCP-LLM_Protocol_v1.0.0.txt';
+        link.download = `UCP-LLM_Protocol_${versionForFile}.txt`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
 
-    function exportProtocolAsJson() {
-        const structuredData = getStructuredData(true); // true for storage values (e.g. select values)
+    function getUserPreferredName() { /* ... (Same logic, translated fallback) ... */ const personalDataContainer = document.getElementById('container-personal'); if (personalDataContainer) { const nameInput = personalDataContainer.querySelector('input[name="preferredName"]'); if (nameInput && nameInput.value.trim()) { return nameInput.value.trim(); } } return "my friend"; }
+    function eveSpeak(message, isUser = false) { /* ... (Same logic) ... */ const bubble = document.createElement('div'); bubble.classList.add(isUser ? 'user-bubble' : 'eve-bubble'); bubble.innerHTML = message; assistantMessagesDiv.appendChild(bubble); assistantMessagesDiv.scrollTop = assistantMessagesDiv.scrollHeight; }
+    function manageAssistantInputVisibility(showTextInput, showTextarea, showSelect, showOptions, showSend, showSkip, showAddAnother, showDoneWithSection, showTemplates) { /* ... (Same logic) ... */ assistantReplyInput.style.display = showTextInput ? 'block' : 'none'; assistantReplyTextarea.style.display = showTextarea ? 'block' : 'none'; assistantReplySelect.style.display = showSelect ? 'block' : 'none'; assistantQuestionOptionsDiv.style.display = showOptions ? 'block' : 'none'; assistantTemplateOptionsDiv.style.display = showTemplates ? 'block' : 'none'; assistantSendBtn.style.display = showSend ? 'inline-block' : 'none'; assistantSkipBtn.style.display = showSkip ? 'inline-block' : 'none'; assistantAddAnotherBtn.style.display = showAddAnother ? 'inline-block' : 'none'; assistantDoneWithSectionBtn.style.display = showDoneWithSection ? 'inline-block' : 'none'; if (showTextInput) assistantReplyInput.focus(); if (showTextarea) assistantReplyTextarea.focus(); }
+
+    function showAssistantInputType(fieldDef, inventedQuestionConfig, isAskingAddAnother = false, isSessionEnd = false) { // Translated placeholder for template select
+        assistantReplyInput.value = ''; assistantReplyTextarea.value = ''; assistantReplySelect.innerHTML = '';
+        assistantQuestionOptionsDiv.innerHTML = ''; assistantTemplateOptionsDiv.innerHTML = '';
+        if (isSessionEnd) { manageAssistantInputVisibility(false, false, false, false, false, false, false, false, false); assistantCurrentQuestionLabel.textContent = "Thank you! You can close this window."; return; } // Translated
+        if (isAskingAddAnother) { manageAssistantInputVisibility(false, false, false, false, false, false, true, true, false); return; }
+        let hasTemplates = false;
+        if (fieldDef && fieldDef.templates && fieldDef.templates.length > 0) {
+            hasTemplates = true;
+            if (fieldDef.templates.length <= 5) {
+                fieldDef.templates.forEach(template => { /* ... (same button + tooltip logic) ... */ const btn = document.createElement('button'); btn.classList.add('assistant-option-btn'); btn.textContent = template.length > 50 ? template.substring(0, 47) + "..." : template; btn.onclick = () => processAssistantReplyWithUIManager(template); const tooltip = document.createElement('div'); tooltip.classList.add('template-tooltip'); tooltip.textContent = template; btn.appendChild(tooltip); assistantTemplateOptionsDiv.appendChild(btn); });
+            } else {
+                const templateSelect = document.createElement('select'); templateSelect.style.width = '100%'; templateSelect.style.marginBottom = '10px';
+                const defaultOpt = document.createElement('option'); defaultOpt.value = ""; defaultOpt.textContent = "-- Select a template (optional) --"; // Translated
+                templateSelect.appendChild(defaultOpt);
+                fieldDef.templates.forEach(template => { /* ... (same select option logic) ... */ const opt = document.createElement('option'); opt.value = template; opt.textContent = template.length > 60 ? template.substring(0, 57) + "..." : template; opt.title = template; templateSelect.appendChild(opt); });
+                templateSelect.onchange = (e) => { if (e.target.value) { if (fieldDef.type === 'textarea') assistantReplyTextarea.value = e.target.value; else assistantReplyInput.value = e.target.value; } };
+                assistantTemplateOptionsDiv.appendChild(templateSelect);
+            }
+        }
+        // ... (rest of showAssistantInputType logic is same, ensuring translated prompts if any were missed)
+        if (inventedQuestionConfig) { assistantState.currentQuestionContext = { type: 'invented', iqConfig: inventedQuestionConfig }; if (inventedQuestionConfig.type === 'mc' || inventedQuestionConfig.type === 'tf_custom') { inventedQuestionConfig.options.forEach(opt => { const btn = document.createElement('button'); btn.classList.add('assistant-option-btn'); btn.innerHTML = typeof opt === 'string' ? opt : opt.text; btn.onclick = () => processAssistantReplyWithUIManager(typeof opt === 'string' ? opt : opt.value); assistantQuestionOptionsDiv.appendChild(btn); }); manageAssistantInputVisibility(false, false, false, true, false, true, false, false, hasTemplates); } else { manageAssistantInputVisibility(inventedQuestionConfig.type === 'textarea' ? false : true, inventedQuestionConfig.type === 'textarea' ? true : false, false, false, true, true, false, false, hasTemplates); } } else if (fieldDef) { assistantState.currentQuestionContext = { type: 'direct', sectionKey: getCurrentSectionKey(), fieldDef: fieldDef, itemIndex: assistantState.currentItemCountForSection }; if (fieldDef.type === 'textarea') { manageAssistantInputVisibility(false, true, false, false, true, true, false, false, hasTemplates); } else if (fieldDef.type === 'select') { (fieldDef.options || []).forEach(opt => { const option = document.createElement("option"); option.value = opt.value; option.textContent = opt.text; assistantReplySelect.appendChild(option); }); manageAssistantInputVisibility(false, false, true, false, true, true, false, false, hasTemplates); } else { assistantReplyInput.type = fieldDef.type || 'text'; manageAssistantInputVisibility(true, false, false, false, true, true, false, false, hasTemplates); } } else { manageAssistantInputVisibility(false, false, false, false, false, false, false, false, false); assistantCurrentQuestionLabel.textContent = "Something went wrong, trying to continue..."; setTimeout(askNextAssistantQuestion, 1000); } // Translated
+    }
+
+    function getCurrentSectionKey() { /* ... (Same logic) ... */ const keys = Object.keys(sectionTypeData); return assistantState.currentSectionKeyIndex < keys.length ? keys[assistantState.currentSectionKeyIndex] : null; }
+    function getCurrentFieldDef() { /* ... (Same logic) ... */ const sectionKey = getCurrentSectionKey(); if (sectionKey) { const sectionDef = sectionTypeData[sectionKey]; return assistantState.currentFieldIndex < sectionDef.fields.length ? sectionDef.fields[assistantState.currentFieldIndex] : null; } return null; }
+
+    function askNextAssistantQuestion() { // Translated Eve prompts
+        if (assistantState.pendingSectionStart) return;
+        if (assistantState.isAskingToAddAnother) return;
+        const sectionKey = getCurrentSectionKey();
+        if (sectionKey) {
+            const sectionDef = sectionTypeData[sectionKey];
+            const fieldDef = getCurrentFieldDef();
+            if (fieldDef) {
+                // ... (DOM item creation logic same as v1.0.6) ...
+                let sectionContainer = document.getElementById(`container-${sectionKey}`); if (!sectionContainer) { createSectionTypeContainer(sectionKey); assistantState.currentItemCountForSection = 1; } else { const itemsContainer = document.getElementById(`items-${sectionKey}`); if (assistantState.currentItemCountForSection === 0 && itemsContainer.children.length === 0) { addItemToSection(sectionKey); assistantState.currentItemCountForSection = 1; } else if (assistantState.currentItemCountForSection === 0 && itemsContainer.children.length > 0) { assistantState.currentItemCountForSection = 1; } else if (itemsContainer.children.length < assistantState.currentItemCountForSection) { addItemToSection(sectionKey); /* Ensures item exists if count advanced */ } }
+
+                if (assistantState.isReopeningSession && sectionDef.maxItems === 1) {
+                    const itemsContainer = document.getElementById(`items-${sectionKey}`);
+                    if (itemsContainer && itemsContainer.children.length > 0) {
+                        const currentItemDiv = itemsContainer.children[0];
+                        const targetInputElement = currentItemDiv.querySelector(`[name="${fieldDef.name}"]`);
+                        if (targetInputElement && targetInputElement.value && targetInputElement.value.trim() !== "") {
+                            assistantState.currentFieldIndex++;
+                            askNextAssistantQuestion(); return;
+                        }
+                    }
+                }
+                assistantState.isReopeningSession = false;
+                const questionText = `Okay ${getUserPreferredName()}, let's talk about the "${sectionDef.title.replace(/[\u{1F300}-\u{1F6FF}\u2600-\u26FF]/gu, '').trim()}" section. ${fieldDef.label}? 📝`; // Translated
+                eveSpeak(questionText);
+                assistantCurrentQuestionLabel.textContent = fieldDef.label + ":";
+                showAssistantInputType(fieldDef, null);
+            } else { // Finished fields for current item/section
+                if (!sectionDef.maxItems || sectionDef.maxItems > 1) {
+                    if (sectionDef.maxItems && assistantState.currentItemCountForSection >= sectionDef.maxItems) {
+                        eveSpeak(`Great! We've completed all possible items for the "${sectionDef.title.replace(/[\u{1F300}-\u{1F6FF}\u2600-\u26FF]/gu, '').trim()}" section. Let's move on!`); // Translated
+                        moveToNextDirectSectionOrInvented();
+                    } else {
+                        assistantState.isAskingToAddAnother = true;
+                        eveSpeak(`Would you like to add more details or another item to the "${sectionDef.title.replace(/[\u{1F300}-\u{1F6FF}\u2600-\u26FF]/gu, '').trim()}" section, ${getUserPreferredName()}؟ 🤔`); // Translated
+                        assistantCurrentQuestionLabel.textContent = `Add more to ${sectionDef.title.split(' ')[0]}?`; // Simplified, assuming first word is key
+                        showAssistantInputType(null, null, true);
+                    }
+                } else { // Single item section done
+                    moveToNextDirectSectionOrInvented();
+                }
+            }
+        } else { // All direct sections done or skipped
+            assistantState.currentInventedQuestionIndex++;
+            if (assistantState.currentInventedQuestionIndex < eveInventedQuestions.length) {
+                const iq = eveInventedQuestions[assistantState.currentInventedQuestionIndex];
+                eveSpeak(iq.question); // Assumes questions are already translated
+                assistantCurrentQuestionLabel.textContent = "A creative question from Eve 🧚:"; // Translated
+                showAssistantInputType(null, iq);
+            } else { // All questions (direct and invented) are done
+                eveSpeak(`Wonderful, ${getUserPreferredName() || "my creative friend"}! ✨ We've accomplished a lot together and completed your protocol. It's now like a work of art that expresses you. Your protocol has been saved successfully! You can now export it or edit it manually from the main interface if you wish. So happy to help you! 🥰`); // Translated
+                assistantCurrentQuestionLabel.textContent = "Setup completed successfully!"; // Translated
+                showAssistantInputType(null, null, false, true);
+                assistantState.isReopeningSession = false;
+            }
+        }
+    }
+
+    function moveToNextDirectSectionOrInvented() { /* ... (Same logic) ... */ assistantState.currentSectionKeyIndex++; assistantState.currentFieldIndex = 0; assistantState.currentItemCountForSection = 0; askNextAssistantQuestion(); }
+    function assistantHandleAddAnother() { /* ... (Same logic, currentItemCountForSection handling reviewed) ... */ assistantState.isAskingToAddAnother = false; assistantState.currentFieldIndex = 0; const sectionKey = getCurrentSectionKey(); const itemsContainer = document.getElementById(`items-${sectionKey}`); if (itemsContainer) { assistantState.currentItemCountForSection = itemsContainer.children.length + 1; } else { assistantState.currentItemCountForSection++; } askNextAssistantQuestion(); }
+    function assistantHandleDoneWithSection() { /* ... (Same logic) ... */ assistantState.isAskingToAddAnother = false; moveToNextDirectSectionOrInvented(); }
+
+    function processAssistantReplyWithUIManager(mcqChoice = null) { // Translated skip messages
+        if (isProcessingEveReply) { console.warn("Eve: processAssistantReplyWithUIManager called while already processing. Ignoring duplicate call for mcqChoice:", mcqChoice); return; }
+        isProcessingEveReply = true;
+        try {
+            const context = assistantState.currentQuestionContext;
+            let replyValueSourceDetermined = false; let replyValue;
+            if (!context) { console.error("Eve: CRITICAL - No current question context. Attempting recovery."); askNextAssistantQuestion(); return; }
+            // ... (Logic for determining replyValueSourceDetermined and replyValue is same as v1.0.6) ...
+            if (mcqChoice !== null && mcqChoice !== undefined) { replyValue = mcqChoice; replyValueSourceDetermined = true; } else if (context.type === 'direct' && context.fieldDef) { if (context.fieldDef.type === 'textarea') { replyValue = assistantReplyTextarea.value.trim(); replyValueSourceDetermined = true; } else if (context.fieldDef.type === 'select') { replyValue = assistantReplySelect.value; replyValueSourceDetermined = true; } else { replyValue = assistantReplyInput.value.trim(); replyValueSourceDetermined = true; } } else if (context.type === 'invented' && context.iqConfig) { if (context.iqConfig.type === 'textarea') { replyValue = assistantReplyTextarea.value.trim(); replyValueSourceDetermined = true; } else if (context.iqConfig.type === 'text') { replyValue = assistantReplyInput.value.trim(); replyValueSourceDetermined = true; } }
+
+            if (!replyValueSourceDetermined) {
+                console.error("Eve: Could not determine reply value source. mcqChoice:", mcqChoice, "Context:", JSON.parse(JSON.stringify(context)));
+                eveSpeak("Sorry, something went wrong processing your reply. Could you try again or skip the question?"); // Translated
+                if (context.type === 'invented') { showAssistantInputType(null, context.iqConfig); }
+                else if (context.type === 'direct') { showAssistantInputType(context.fieldDef, null); }
+                return;
+            }
+
+            if (replyValue === "" && !mcqChoice) { // Handles empty text/textarea and empty select
+                if (context && context.type === 'invented') {
+                    eveSpeak("(You chose to skip this creative question. That's okay, we can continue! 😉)", true); // Translated
+                } else {
+                    eveSpeak("(No answer was entered for this question. You can add it later in Manual Mode if you wish.)", true); // Translated
+                }
+            } else {
+                // ... (Logic for eveSpeak(reply) and updating form/notes is same as v1.0.6) ...
+                 eveSpeak(mcqChoice ? `You chose: ${replyValue}` : replyValue, true); if (context.type === 'direct') { const sectionKey = context.sectionKey; const fieldDef = context.fieldDef; const itemNum = context.itemIndex; const itemsContainer = document.getElementById(`items-${sectionKey}`); if (itemsContainer && itemsContainer.children.length >= itemNum && itemNum > 0) { const currentItemDiv = itemsContainer.children[itemNum - 1]; const targetInputElement = currentItemDiv.querySelector(`[name="${fieldDef.name}"]`); if (targetInputElement) { targetInputElement.value = replyValue; targetInputElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true })); } else { console.error(`Eve couldn't find input: ${fieldDef.name} in item ${itemNum} of section ${sectionKey}`); } } else { console.error(`Eve couldn't find item container or item for: ${sectionKey}, itemNum: ${itemNum}`); } } else if (context.type === 'invented') { let notesSection = document.getElementById('container-additional_notes'); if (!notesSection) createSectionTypeContainer('additional_notes'); const itemsContainer = document.getElementById('items-additional_notes'); let targetTextarea; if (itemsContainer.lastChild) { const lastTextarea = itemsContainer.lastChild.querySelector('textarea[name="general_notes"]'); if (lastTextarea && lastTextarea.value.trim() === "") targetTextarea = lastTextarea; else { addItemToSection('additional_notes'); targetTextarea = itemsContainer.lastChild.querySelector('textarea[name="general_notes"]'); } } else { addItemToSection('additional_notes'); targetTextarea = itemsContainer.lastChild.querySelector('textarea[name="general_notes"]'); } if (targetTextarea) { const eveNote = `Question from Eve 🧚: ${context.iqConfig.question}\nYour insightful answer: ${replyValue}\n-----\n`; targetTextarea.value += eveNote; targetTextarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true })); } else { console.error("Eve couldn't find textarea for her notes."); } }
+            }
+            scheduleAutoSave(); generateProtocol();
+            const protocolOutputTextarea = document.getElementById("protocolOutput");
+            if (protocolOutputTextarea) { protocolOutputTextarea.scrollTop = protocolOutputTextarea.scrollHeight; }
+            if (context.type === 'direct') assistantState.currentFieldIndex++;
+            askNextAssistantQuestion();
+        } catch (error) {
+            console.error("Error during processAssistantReplyWithUIManager:", error);
+            eveSpeak("Sorry, I encountered an unexpected issue. I'll try to move to the next question."); // Translated
+            if (assistantState.currentQuestionContext && assistantState.currentQuestionContext.type === 'direct') { assistantState.currentFieldIndex++; }
+            else { assistantState.currentInventedQuestionIndex++; }
+            askNextAssistantQuestion();
+        } finally {
+            setTimeout(() => { isProcessingEveReply = false; }, 100);
+        }
+    }
+
+    function skipAssistantQuestion() { // Translated messages
+        const context = assistantState.currentQuestionContext;
+        let message = "(Question skipped. No answer will be saved for now, but you can always add or edit it later in Manual Mode. 😉)";
+        if (context && context.type === 'invented') {
+            message = "(You chose to skip this creative question. That's okay, we can continue! 😉)";
+        }
+        eveSpeak(message, true);
+        if (context && context.type === 'direct') { assistantState.currentFieldIndex++; }
+        if(assistantState.isAskingToAddAnother){ assistantState.isAskingToAddAnother = false; moveToNextDirectSectionOrInvented(); return; }
+        askNextAssistantQuestion();
+    }
+
+    // --- Original JS Functions (Translated alerts/confirms and minor LTR adjustments if needed) ---
+    function initializeControlButtons() { /* ... (Same logic, titles are from sectionTypeData which is translated) ... */ const controlButtonsContainer = document.getElementById('controlButtonsContainer'); controlButtonsContainer.innerHTML = ''; Object.keys(sectionTypeData).forEach(typeKey => { const typeInfo = sectionTypeData[typeKey]; const button = document.createElement('button'); button.textContent = typeInfo.controlButtonText || `➕ ${typeInfo.title}`; button.id = `control-btn-${typeKey}`; button.title = typeInfo.tooltip || `Add section: ${typeInfo.title}`; button.onclick = () => createSectionTypeContainer(typeKey); controlButtonsContainer.appendChild(button); }); }
+    function createSectionTypeContainer(typeKey) { // Translated confirm message
+        const mainContainer = document.getElementById("mainContainer");
+        let container = document.getElementById(`container-${typeKey}`);
+        const controlButton = document.getElementById(`control-btn-${typeKey}`);
+        if (!container) {
+            // ... (Container creation logic same as v1.0.6) ...
+            container = document.createElement("div"); container.className = "section-type-container"; container.id = `container-${typeKey}`; const typeInfo = sectionTypeData[typeKey]; const header = document.createElement("h2"); header.textContent = typeInfo.title; container.appendChild(header); const closeSectionButton = document.createElement("button"); closeSectionButton.textContent = "❌ Close This Section"; closeSectionButton.className = "close-section-btn"; if (document.body.classList.contains('eve-panel-on-left') && !document.body.classList.contains('eve-fullscreen-mode')) { closeSectionButton.style.right = '15px'; closeSectionButton.style.left = 'auto'; } else { closeSectionButton.style.right = '15px'; closeSectionButton.style.left = 'auto'; /* Default LTR */ } closeSectionButton.onclick = () => { if (confirm("Are you sure you want to close this section? All entered data for this section will be lost.")) { mainContainer.removeChild(container); if (controlButton) controlButton.classList.remove('hidden'); saveDataToLocalStorage(); generateProtocol(); } }; container.appendChild(closeSectionButton); const itemsContainer = document.createElement("div"); itemsContainer.id = `items-${typeKey}`; container.appendChild(itemsContainer); if (!typeInfo.maxItems || typeInfo.maxItems > 1) { const addButton = document.createElement("button"); addButton.textContent = `➕ Add ${typeInfo.title.split(' ')[0] || 'New Item'}`; addButton.className = "add-item-btn"; addButton.onclick = () => addItemToSection(typeKey); container.appendChild(addButton); } mainContainer.appendChild(container); if (controlButton) controlButton.classList.add('hidden');
+        }
+        const itemsContainer = document.getElementById(`items-${typeKey}`);
+        if (itemsContainer && itemsContainer.children.length === 0 && (!sectionTypeData[typeKey].maxItems || sectionTypeData[typeKey].maxItems > 0) ) {
+            addItemToSection(typeKey);
+        }
+        saveDataToLocalStorage(); return container;
+    }
+    function addItemToSection(typeKey) { // Translated alert
+        const itemsContainer = document.getElementById(`items-${typeKey}`);
+        const typeInfo = sectionTypeData[typeKey];
+        if (!itemsContainer) { console.error("addItemToSection: itemsContainer not found for", typeKey); return null; }
+        if (typeInfo.maxItems && itemsContainer.children.length >= typeInfo.maxItems) {
+            alert(`You cannot add more than ${typeInfo.maxItems} item(s) to this section.`); return null; // Translated
+        }
+        // ... (Rest of addItemToSection logic same as v1.0.6, select placeholders translated in sectionTypeData) ...
+        const entryDiv = document.createElement("div"); entryDiv.className = "entry"; entryDiv.setAttribute('data-type', typeKey); typeInfo.fields.forEach(field => { let fieldElement; const label = document.createElement('label'); label.textContent = field.label + ":"; entryDiv.appendChild(label); if (field.type === 'textarea') { fieldElement = document.createElement("textarea"); } else if (field.type === 'select') { fieldElement = document.createElement("select"); const placeholderText = field.placeholder || (field.label.includes("Level") || field.label.includes("State") || field.label.includes("Sport") ? "-- Select --" : "-- Select --"); let hasPlaceholder = false; field.options.forEach(opt => { if (opt.value === "") hasPlaceholder = true; }); if (!hasPlaceholder && field.options[0] && field.options[0].value !== "") { const defaultOption = document.createElement("option"); defaultOption.value = ""; defaultOption.textContent = placeholderText; fieldElement.appendChild(defaultOption); } (field.options || []).forEach(opt => { const option = document.createElement("option"); option.value = opt.value; option.textContent = opt.text; fieldElement.appendChild(option); }); if (fieldElement.options.length > 0 && !hasPlaceholder && field.options[0].value !== "") fieldElement.value = ""; } else { fieldElement = document.createElement("input"); fieldElement.type = field.type || "text"; } fieldElement.name = field.name; fieldElement.placeholder = field.placeholder || field.label; fieldElement.id = `${field.name}-${itemsContainer.children.length}-${Math.random().toString(36).substr(2, 5)}`; label.htmlFor = fieldElement.id; fieldElement.addEventListener('input', () => { scheduleAutoSave(); generateProtocol(); }); fieldElement.addEventListener('change',() => { scheduleAutoSave(); generateProtocol(); }); entryDiv.appendChild(fieldElement); }); itemsContainer.appendChild(entryDiv); saveDataToLocalStorage(); generateProtocol(); return entryDiv;
+    }
+    function scheduleAutoSave() { /* ... (Same logic) ... */ clearTimeout(autoSaveTimeout); autoSaveTimeout = setTimeout(saveDataToLocalStorage, 1500); }
+
+    function getStructuredData(forStorage = false) { // Updated version string
+        const protocolData = { protocolVersion: CURRENT_APP_VERSION, generationDate: new Date().toISOString(), sections: [] };
+        // ... (Rest of getStructuredData logic same as v1.0.6, select placeholders translated) ...
+        Object.keys(sectionTypeData).forEach(typeKey => { const container = document.getElementById(`container-${typeKey}`); if (container) { const itemsContainer = document.getElementById(`items-${typeKey}`); if (itemsContainer && itemsContainer.children.length > 0) { const typeInfo = sectionTypeData[typeKey]; const section = { id: typeKey, title: typeInfo.title, items: [] }; let sectionHasContent = false; Array.from(itemsContainer.children).forEach(entry => { const itemData = {}; let itemHasContent = false; entry.querySelectorAll("input, textarea, select").forEach(inp => { const fieldDef = typeInfo.fields.find(f => f.name === inp.name); if (fieldDef && inp.value && (inp.tagName !== 'SELECT' || inp.value !== "") ) { if (inp.value.trim() === "" && fieldDef.type !== 'textarea' && fieldDef.type !== 'text' && !(inp.tagName === 'SELECT' && inp.value === "")) {} else { let valueToStore = inp.value; if (inp.tagName === 'SELECT' && !forStorage && inp.options[inp.selectedIndex]) { const placeholderText = inp.options[0] && inp.options[0].value === "" ? inp.options[0].text : "-- Select --"; valueToStore = (inp.options[inp.selectedIndex].text !== placeholderText ) ? inp.options[inp.selectedIndex].text : ""; if (!valueToStore && inp.value !== "") valueToStore = inp.value; else if (!valueToStore) return; } itemData[fieldDef.jsonKey || fieldDef.name] = valueToStore; itemHasContent = true; } } }); if (itemHasContent) { section.items.push(itemData); sectionHasContent = true; } }); if (sectionHasContent) { protocolData.sections.push(section); } } } }); return protocolData;
+    }
+
+    function generateProtocol() { // Translated text, updated version, locale for date
+        const structuredData = getStructuredData(false);
+        const protocolOutputTextarea = document.getElementById("protocolOutput");
         if (structuredData.sections.length === 0) {
-            alert("No data to export as JSON. Please add some information."); return;
+            protocolOutputTextarea.value = "No sections with content have been added yet. Please add information to generate the protocol, my friend. Eve is here to help! 🧚"; // Translated
+            return "";
+        }
+        let output = `User Context Protocol (UCP-LLM) - Generated by ${CURRENT_APP_VERSION.split('(')[0].trim()}\n`; // Translated
+        output += `Generation Date: ${new Date(structuredData.generationDate).toLocaleString('en-US')}\n\n`; // English locale
+
+        output += `--- Initial Directives for the LLM ---\n`; // Translated
+        output += `This protocol aims to provide you, the LLM, with a comprehensive understanding of the user. Deeply assimilate this to facilitate advanced, context-aware, and intellectually aligned interactions. This is a Core Contextual Anchor (CCA) and a living document.\n\n`; // Translated
+
+        structuredData.sections.forEach((section, sectionIndex) => { /* ... (Same logic, section.title is now English) ... */ output += `${sectionIndex + 1}. Section: ${section.title}\n`; section.items.forEach((item, itemIndex) => { if (section.items.length > 1 && Object.keys(item).length > 0) output += `  Item (${itemIndex + 1}):\n`; const typeInfo = sectionTypeData[section.id]; Object.keys(item).forEach(jsonKeyForItem => { const fieldDef = typeInfo.fields.find(f => f.jsonKey === jsonKeyForItem); const displayLabel = fieldDef ? fieldDef.label : jsonKeyForItem; const valueDisplay = String(item[jsonKeyForItem]).replace(/\n/g, '\n        '); output += `    - ${displayLabel}: ${valueDisplay}\n`; }); }); output += "\n"; });
+
+        output += `--- How to Use This Protocol? ---\n`; // Translated
+        output += `1.  **Deep Understanding:** Use this information to build a deep understanding of the user's context, values, goals, and intellectual style.\n`;
+        output += `2.  **Personalization:** Avoid generic responses. Aim to personalize your interactions to be directly relevant to what is stated in this protocol.\n`;
+        output += `3.  **Intellectual Alignment:** Strive to think and act in alignment with the methodologies and preferences outlined here.\n`;
+        output += `4.  **Proactivity (based on intervention level):** Depending on the specified "Model Intervention Level," be proactive in suggesting ideas or connecting concepts.\n`;
+        output += `5.  **Contextual Memory:** Consider this protocol a primary reference for remembering user details across different interactions.\n\n`;
+
+        let mainPointsOutput = "--- Key Points (Quick Summary) ---\n"; // Translated
+        // ... (Logic for extracting main points same as v1.0.6, using English keys if they changed in translation) ...
+        const personalSection = structuredData.sections.find(s => s.id === 'personal'); if (personalSection && personalSection.items.length > 0 && personalSection.items[0].preferredName) { mainPointsOutput += `- Preferred Name for Interaction: ${personalSection.items[0].preferredName}\n`; } const projectsSection = structuredData.sections.find(s => s.id === 'projects'); if (projectsSection && projectsSection.items.length > 0) { const projectTitles = projectsSection.items.map(p => p.projectOrObjectiveTitle).filter(Boolean).join(", "); if (projectTitles) mainPointsOutput += `- Some Current Projects/Objectives: ${projectTitles}\n`; } const passionsSection = structuredData.sections.find(s => s.id === 'cognitive_passion'); if (passionsSection && passionsSection.items.length > 0) { const passionNames = passionsSection.items.map(p => p.cognitivePassionName).filter(Boolean).join(", "); if (passionNames) mainPointsOutput += `- Some Cognitive Passions: ${passionNames}\n`; } const roleSection = structuredData.sections.find(s => s.id === 'role'); if (roleSection && roleSection.items.length > 0 && roleSection.items[0].llmPrimaryRole) { mainPointsOutput += `- Primary Role Required from You: ${roleSection.items[0].llmPrimaryRole}\n`; }
+        if (mainPointsOutput === "--- Key Points (Quick Summary) ---\n") {
+            mainPointsOutput += "- (Not enough key points identified yet for summary)\n"; // Translated
+        }
+        output += mainPointsOutput + "\n";
+
+        output += `--- Concluding Note for the Model ---\nUnderstanding is an ongoing process. Aim for maximum intellectual alignment based on this document, and ask for clarification when needed.\n`; // Translated
+        protocolOutputTextarea.value = output.trim();
+        return output.trim();
+    }
+
+    function exportProtocolAsTxt() { // Translated alert, updated filename
+        const protocolText = generateProtocol();
+        if (!protocolText || protocolText.includes("No sections with content")) {
+            alert("Please generate the protocol or add data first, my friend."); return; // Translated
+        }
+        const blob = new Blob([protocolText], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        const appVersionString = CURRENT_APP_VERSION.split('(')[0].trim();
+        const versionForFile = appVersionString.replace(/[^a-zA-Z0-9-_.]/g, '_').replace(/_+/g, '_');
+        link.href = URL.createObjectURL(blob);
+        link.download = `UCP-LLM_Protocol_${versionForFile}.txt`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+    function exportProtocolAsJson() { // Translated alert, updated filename
+        const structuredData = getStructuredData(true);
+        if (structuredData.sections.length === 0) {
+            alert("No data to export as JSON. Shall we fill in some fields together? 😊"); return; // Translated
         }
         const jsonString = JSON.stringify(structuredData, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
         const link = document.createElement('a');
+        const appVersionString = CURRENT_APP_VERSION.split('(')[0].trim();
+        const versionForFile = appVersionString.replace(/[^a-zA-Z0-9-_.]/g, '_').replace(/_+/g, '_');
         link.href = URL.createObjectURL(blob);
-        link.download = 'UCP-LLM_Protocol_v1.0.0.json';
+        link.download = `UCP-LLM_Protocol_${versionForFile}.json`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
     }
-    
-    function saveDataToLocalStorage() {
-        const dataToSave = getStructuredData(true); // for storage, use select value
-        try {
-            localStorage.setItem(UCP_LLM_STORAGE_KEY, JSON.stringify(dataToSave));
-        } catch (e) { console.error("Error saving to localStorage:", e); }
-    }
 
-    function loadDataFromLocalStorage() {
+    function saveDataToLocalStorage() { /* ... (Same logic) ... */ const dataToSave = getStructuredData(true); try { localStorage.setItem(UCP_LLM_STORAGE_KEY, JSON.stringify(dataToSave)); } catch (e) { console.error("Error saving to localStorage:", e); } }
+    function loadDataFromLocalStorage() { // Translated confirm, updated version check
         const savedDataString = localStorage.getItem(UCP_LLM_STORAGE_KEY);
         if (savedDataString) {
             try {
                 const savedData = JSON.parse(savedDataString);
+                if (savedData && savedData.protocolVersion && savedData.protocolVersion !== CURRENT_APP_VERSION) {
+                    console.warn(`Warning: Loaded data is from version (${savedData.protocolVersion}) which differs from the current app version (${CURRENT_APP_VERSION}). Compatibility issues may occur.`); // Translated
+                }
                 if (savedData && savedData.sections && Array.isArray(savedData.sections)) {
-                    if (confirm("Saved data found. Would you like to restore it?")) {
-                        reconstructUIFromData(savedData);
+                    if (confirm("Hi there! 👋 Found previously saved data. Would you like to restore it and continue our journey?")) { // Translated
+                        reconstructUIFromData(savedData); generateProtocol();
                     }
                 }
             } catch (e) { console.error("Error parsing localStorage data:", e); localStorage.removeItem(UCP_LLM_STORAGE_KEY); }
         }
     }
-
-    function reconstructUIFromData(data) {
-        document.getElementById("mainContainer").innerHTML = '';
-        initializeControlButtons(); 
-        if (data.sections) {
-            data.sections.forEach(section => { // section here is from saved data, with 'title' as English
-                const typeKey = section.id;
-                if (sectionTypeData[typeKey]) {
-                    createSectionTypeContainer(typeKey); 
-                    const itemsContainer = document.getElementById(`items-${typeKey}`);
-                    if (itemsContainer && itemsContainer.firstChild && section.items.length > 0) {
-                        itemsContainer.removeChild(itemsContainer.firstChild);
-                    }
-                    section.items.forEach(itemData => { // itemData has English jsonKeys
-                        addItemToSection(typeKey); 
-                        const lastEntry = itemsContainer.lastChild;
-                        if (lastEntry) {
-                            lastEntry.querySelectorAll("input, textarea, select").forEach(inp => {
-                                const fieldDef = sectionTypeData[typeKey].fields.find(f => f.name === inp.name);
-                                if (fieldDef && itemData[fieldDef.jsonKey]) { // Match using jsonKey
-                                    inp.value = itemData[fieldDef.jsonKey];
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    function toggleHelpSection() {
-        const helpSection = document.getElementById('helpSection');
-        if (helpSection.style.display === 'none') {
-            helpSection.style.display = 'block';
-            helpSection.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            helpSection.style.display = 'none';
-        }
-    }
-    function clearAllDataWithConfirmation() {
-        if (confirm("Are you sure you want to clear all sections and entered data? This action cannot be undone.")) {
+    function reconstructUIFromData(data) { /* ... (Same logic) ... */ document.getElementById("mainContainer").innerHTML = ''; initializeControlButtons(); if (data.sections) { data.sections.forEach(section => { const typeKey = section.id; if (sectionTypeData[typeKey]) { createSectionTypeContainer(typeKey); const itemsContainer = document.getElementById(`items-${typeKey}`); if (itemsContainer) itemsContainer.innerHTML = ''; section.items.forEach(itemData => { const newItemDiv = addItemToSection(typeKey); if (newItemDiv) { newItemDiv.querySelectorAll("input, textarea, select").forEach(inp => { const fieldDef = sectionTypeData[typeKey].fields.find(f => f.name === inp.name); if (fieldDef && itemData[fieldDef.jsonKey] !== undefined) inp.value = itemData[fieldDef.jsonKey]; }); } }); } }); } }
+    function toggleHelpSection() { /* ... (Same logic) ... */ const helpSection = document.getElementById('helpSection'); if (helpSection.style.display === 'none') { helpSection.style.display = 'block'; helpSection.scrollIntoView({ behavior: 'smooth' }); } else { helpSection.style.display = 'none'; } }
+    function clearAllDataWithConfirmation() { // Translated confirm and alert
+        if (confirm("Are you absolutely sure you want to clear everything and start over? Like starting a brand new adventure! 🌬️")) { // Translated
             localStorage.removeItem(UCP_LLM_STORAGE_KEY);
-            document.getElementById("mainContainer").innerHTML = ''; 
-            initializeControlButtons(); 
-            document.getElementById("protocolOutput").value = ''; 
-            alert("All data has been cleared.");
+            document.getElementById("mainContainer").innerHTML = ''; initializeControlButtons(); document.getElementById("protocolOutput").value = '';
+            assistantState.needsFullReset = true; assistantState.sessionStartedOnce = false;
+            if (assistantState.active) { startFullAssistantSession(); }
+            alert("All data has been cleared. A blank canvas awaits your creativity!"); // Translated
         }
     }
-    
-    window.onload = () => { initializeControlButtons(); loadDataFromLocalStorage(); };
+
+    window.onload = () => {
+        const preferredPosition = localStorage.getItem(EVE_POSITION_KEY);
+        if (preferredPosition) eveCurrentPosition = preferredPosition;
+        // Default Eve's panel position based on LTR (left) or RTL (right) if not set.
+        // For LTR, default is already 'left'.
+        applyEveVisualState(); // Apply initial state (Eve hidden, correct position class for margins)
+
+        initializeControlButtons();
+        loadDataFromLocalStorage();
+        generateProtocol();
+        window.onclick = function(event) { if (event.target == protocolPreviewModal) { closeProtocolPreviewModal(); } }
+    };
 </script>
 </body>
 </html>
