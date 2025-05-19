@@ -331,4 +331,4 @@ Engage in Discussions: Share your thoughts on the UCP-LLM concept and its potent
 
 📜 License
 
-This project is licensed under the MIT License. Please see the LICENSE.txt file (to be added) for full details.
+This project is licensed under the MIT License. Please see the LICENSE.txt file for full details.
